@@ -9,6 +9,12 @@ int main(int argc, char *argv[])
 {
     MACRO_signalHandler
     //qSetMessagePattern(QString("[%{type}] %{appname} (%{file}:%{line}) - %{message} %{backtrace}"));
+#ifdef __ANDROID__
+    //QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    //QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    //qputenv("QT_SCALE_FACTOR", "0.6");
+    qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "true");
+#endif
 
     QApplication qtapp(argc, argv);
     QApplication::setApplicationName("hasherQtg");

@@ -336,14 +336,13 @@ void fileDataController_c::setHashFormat_f(const eines::hasher_c::outputType_ec 
 //    return currentHashedFile_pri;
 //}
 
-bool fileDataController_c::addFileDataToUMap(
+void fileDataController_c::addFileDataToUMap(
         const fileData_c& obj_par_con
         , const int row_par_con)
 {
-    fileDataIdToRow_pri.insert_or_assign(obj_par_con.id_f(), row_par_con);
+    fileDataIdToRow_pri[obj_par_con.id_f()] = row_par_con;
     filePathTofileDataIdUMap_pri.insert(obj_par_con.filePath_f(), obj_par_con.id_f());
-    auto retunValue(fileDataIdToFileDataUMap_pri.insert_or_assign(obj_par_con.id_f(), obj_par_con));
-    return retunValue.second;
+    fileDataIdToFileDataUMap_pri[obj_par_con.id_f()] = obj_par_con;
 }
 
 int fileDataController_c::fileDataIdToRow_f(const int_fast64_t fileDataId_par_con) const

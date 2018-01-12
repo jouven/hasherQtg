@@ -44,10 +44,12 @@ void Window_c::clearHashFields_f()
 void Window_c::resizeFileTable_f()
 {
     fileTable_pri->resizeColumnsToContents();
+#ifndef __ANDROID__
     QTimer::singleShot(100,[=]
     {
         adjustSize();
     });
+#endif
 }
 
 Window_c::Window_c()
@@ -556,9 +558,12 @@ void Window_c::browseDirectoryToAdd_f()
     selectFolderDialogTmp.setDirectory(QDir::currentPath());
     selectFolderDialogTmp.setWindowTitle(tr("Select folder"));
     selectFolderDialogTmp.setViewMode(QFileDialog::Detail);
-    selectFolderDialogTmp.setFilter(QDir::Hidden | QDir::NoDotAndDotDot);
+    selectFolderDialogTmp.setFilter(QDir::Hidden | QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs | QDir::Drives);
     selectFolderDialogTmp.setOption(QFileDialog::DontUseNativeDialog, true);
     //selectFolderDialogTmp.setOption(QFileDialog::ShowDirsOnly, true);
+#ifdef __ANDROID__
+    selectFolderDialogTmp.setGeometry(QApplication::desktop()->availableGeometry(this));
+#endif
     selectFolderDialogTmp.setOption(QFileDialog::ReadOnly, true);
 
     QList<QUrl> directoriesTmp;
@@ -689,10 +694,13 @@ void Window_c::addFileSelectionToList_f()
 
     selectFilesDialogTmp.setWindowTitle(tr("Select files"));
     selectFilesDialogTmp.setViewMode(QFileDialog::Detail);
-    selectFilesDialogTmp.setFilter(QDir::Hidden | QDir::NoDotAndDotDot);
+    selectFilesDialogTmp.setFilter(QDir::Hidden | QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs | QDir::Drives);
     selectFilesDialogTmp.setOption(QFileDialog::DontUseNativeDialog, true);
     //selectFolderDialogTmp.setOption(QFileDialog::ShowDirsOnly, true);
     selectFilesDialogTmp.setOption(QFileDialog::ReadOnly, true);
+#ifdef __ANDROID__
+    selectFilesDialogTmp.setGeometry(QApplication::desktop()->availableGeometry(this));
+#endif
 
     QList<QUrl> directoriesTmp;
     directoriesTmp.reserve(directoryPathToDateTime_pri.size());
@@ -763,10 +771,14 @@ void Window_c::dialogLoadFileList_f()
 
     selectFilesDialogTmp.setWindowTitle(tr("Select files"));
     selectFilesDialogTmp.setViewMode(QFileDialog::Detail);
-    selectFilesDialogTmp.setFilter(QDir::Hidden | QDir::NoDotAndDotDot);
+    selectFilesDialogTmp.setFilter(QDir::Hidden | QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs | QDir::Drives);
     selectFilesDialogTmp.setOption(QFileDialog::DontUseNativeDialog, true);
     //selectFolderDialogTmp.setOption(QFileDialog::ShowDirsOnly, true);
     selectFilesDialogTmp.setOption(QFileDialog::ReadOnly, true);
+#ifdef __ANDROID__
+    selectFilesDialogTmp.setGeometry(QApplication::desktop()->availableGeometry(this));
+#endif
+
 
     QList<QUrl> directoriesTmp;
     directoriesTmp.reserve(directoryPathToDateTime_pri.size());
@@ -903,9 +915,12 @@ void Window_c::dialogSaveFileList_f()
     saveDialogTmp.selectFile("results.json");
     saveDialogTmp.setWindowTitle(tr("Save results file..."));
     saveDialogTmp.setViewMode(QFileDialog::Detail);
-    saveDialogTmp.setFilter(QDir::Hidden | QDir::NoDotAndDotDot);
+    saveDialogTmp.setFilter(QDir::Hidden | QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs | QDir::Drives);
     saveDialogTmp.setDefaultSuffix("json");
     saveDialogTmp.setOption(QFileDialog::DontUseNativeDialog, true);
+#ifdef __ANDROID__
+    saveDialogTmp.setGeometry(QApplication::desktop()->availableGeometry(this));
+#endif
 
     QList<QUrl> directoriesTmp;
     directoriesTmp.reserve(directoryPathToDateTime_pri.size());

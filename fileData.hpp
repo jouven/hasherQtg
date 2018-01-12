@@ -89,10 +89,11 @@ class fileDataController_c
     eines::hasher_c::outputType_ec hashFormat_pri = eines::hasher_c::outputType_ec::decimalString;
 
 public:
-     fileDataController_c() = default;
+    fileDataController_c() = default;
+    //returns true on insert, false if it just updates
+    void addFileDataToUMap(const fileData_c& obj_par_con, const int row_par_con);
 
-    bool addFileDataToUMap(const fileData_c& obj_par_con, const int row_par_con);
-
+    //-1 if not found, >-1 otherwise
     int fileDataIdToRow_f(const int_fast64_t fileDataId_par_con) const;
     int_fast64_t filePathToFileDataId_f(const QString& filePath_con) const;
 

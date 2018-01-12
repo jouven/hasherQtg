@@ -5,7 +5,8 @@ CONFIG -= no_keywords app_bundle
 
 TEMPLATE = app
 
-QMAKE_CXXFLAGS += -std=c++17
+!android:QMAKE_CXXFLAGS += -std=c++17
+android:CONFIG += c++14
 
 HEADERS       = \
     window.hpp \
@@ -34,20 +35,42 @@ win32:MYPATH = "H:/veryuseddata/portable/msys64/"
 #mine
 INCLUDEPATH += $${MYPATH}home/jouven/mylibs/include
 
+if (!android){
 #don't new line the "{"
 #release
 CONFIG(release, debug|release){
-    LIBS += -L$${MYPATH}home/jouven/mylibs/release/
+    LIBS += -L$${MYPATH}home/jouven/mylibs/release
     DEPENDPATH += $${MYPATH}home/jouven/mylibs/release
     QMAKE_RPATHDIR += $${MYPATH}home/jouven/mylibs/release
 }
 #debug
 CONFIG(debug, debug|release){
-    LIBS += -L$${MYPATH}home/jouven/mylibs/debug/ -lbackwardSTso -ltimeso -lboost_date_time -lbaseClassQtso
+    LIBS += -L$${MYPATH}home/jouven/mylibs/debug -lbackwardSTso -ltimeso -lboost_date_time -lbaseClassQtso
     DEPENDPATH += $${MYPATH}home/jouven/mylibs/debug
     QMAKE_RPATHDIR += $${MYPATH}home/jouven/mylibs/debug
+    #QMAKE_LFLAGS += -rdynamic
     DEFINES += DEBUGJOUVEN
 }
+}
+
+if (android)
+{
+#release
+CONFIG(release, debug|release){
+    LIBS += -L$${MYPATH}home/jouven/mylibsAndroid/release
+    DEPENDPATH += $${MYPATH}home/jouven/mylibsAndroid/release
+    QMAKE_RPATHDIR += $${MYPATH}home/jouven/mylibsAndroid/release
+}
+#debug
+CONFIG(debug, debug|release){
+    LIBS += -L$${MYPATH}home/jouven/mylibsAndroid/debug
+    DEPENDPATH += $${MYPATH}home/jouven/mylibsAndroid/debug
+    QMAKE_RPATHDIR += $${MYPATH}home/jouven/mylibsAndroid/debug
+    DEFINES += DEBUGJOUVEN
+}
+
+}
+
 
 LIBS += -lcriptoQtso -lessentialQtso -lsignalso -lthreadedFunctionQtso -lsizeConversionso
 
@@ -55,16 +78,82 @@ QMAKE_CXXFLAGS_DEBUG -= -g
 QMAKE_CXXFLAGS_DEBUG += -pedantic -Wall -Wextra -g3
 
 #if not win32, add flto, mingw (on msys2) can't handle lto
-unix:QMAKE_CXXFLAGS_RELEASE += -flto=jobserver
-#qt QMAKE defaults strike again, adds -mtune=core2 just because in win32
-win32:QMAKE_CXXFLAGS -= -mtune=core2
-QMAKE_CXXFLAGS_RELEASE += -mtune=sandybridge
+linux:QMAKE_CXXFLAGS_RELEASE += -flto=jobserver
+!android:QMAKE_CXXFLAGS_RELEASE += -mtune=sandybridge
 
 #for -flto=jobserver in the link step to work with -j4
-unix:QMAKE_LINK = +g++
+linux:!android:QMAKE_LINK = +g++
 
-unix:QMAKE_LFLAGS += -fuse-ld=gold
+linux:QMAKE_LFLAGS += -fuse-ld=gold
 QMAKE_LFLAGS_RELEASE += -fvisibility=hidden
 #if not win32, add flto, mingw (on msys2) can't handle lto
-unix:QMAKE_LFLAGS_RELEASE += -flto=jobserver
+linux:QMAKE_LFLAGS_RELEASE += -flto=jobserver
 
+
+#Android stuff, for an executable project to work with shared libraries
+#the library files used by the project must be manually
+#specified
+#this is done in the project tab I just add debug/release files,
+#then I copy this code and change release <-> debug to get the other
+if (android)
+{
+#release
+CONFIG(release, debug|release){
+contains(ANDROID_TARGET_ARCH,armeabi-v7a) {
+    ANDROID_EXTRA_LIBS = \
+        $$PWD/../../mylibsAndroid/release/libbaseClassQtso.so \
+        $$PWD/../../mylibsAndroid/release/libcrc32cso.so \
+        $$PWD/../../mylibsAndroid/release/libcriptoQtso.so \
+        $$PWD/../../mylibsAndroid/release/libessentialQtso.so \
+        $$PWD/../../mylibsAndroid/release/libfileHashQtso.so \
+        $$PWD/../../mylibsAndroid/release/libqmutexUMapQtso.so \
+        $$PWD/../../mylibsAndroid/release/libsignalso.so \
+        $$PWD/../../mylibsAndroid/release/libthreadedFunctionQtso.so \
+        $$PWD/../../mylibsAndroid/release/libxxhashso.so \
+        $$PWD/../../mylibsAndroid/release/libsizeConversionso.so
+}
+}
+
+#debug
+CONFIG(debug, debug|release){
+contains(ANDROID_TARGET_ARCH,armeabi-v7a) {
+    ANDROID_EXTRA_LIBS = \
+        $$PWD/../../mylibsAndroid/debug/libbaseClassQtso.so \
+        $$PWD/../../mylibsAndroid/debug/libcrc32cso.so \
+        $$PWD/../../mylibsAndroid/debug/libcriptoQtso.so \
+        $$PWD/../../mylibsAndroid/debug/libessentialQtso.so \
+        $$PWD/../../mylibsAndroid/debug/libfileHashQtso.so \
+        $$PWD/../../mylibsAndroid/debug/libqmutexUMapQtso.so \
+        $$PWD/../../mylibsAndroid/debug/libsignalso.so \
+        $$PWD/../../mylibsAndroid/debug/libthreadedFunctionQtso.so \
+        $$PWD/../../mylibsAndroid/debug/libxxhashso.so \
+        $$PWD/../../mylibsAndroid/debug/libsizeConversionso.so
+}
+}
+
+DISTFILES += \
+    android/AndroidManifest.xml \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradlew \
+    android/res/values/libs.xml \
+    android/build.gradle \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew.bat \
+    android/AndroidManifest.xml \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradlew \
+    android/res/values/libs.xml \
+    android/build.gradle \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew.bat \
+    android/AndroidManifest.xml \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradlew \
+    android/res/values/libs.xml \
+    android/build.gradle \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew.bat
+
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
+
+}

@@ -96,7 +96,7 @@ bool appConfig_c::saveConfigFile_f() const
         }
         else
         {
-            configFileStr = QCoreApplication::applicationDirPath() + "/" + QCoreApplication::applicationName() +  "_config.json";
+            configFileStr = configFileDefaultPath_f();
         }
 
         QFile configFileSaveTmp(configFileStr);
