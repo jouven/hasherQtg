@@ -13,13 +13,19 @@ class QLabel;
 class QVBoxLayout;
 class QRadioButton;
 class QCheckBox;
+#ifdef __ANDROID__
+class QScrollArea;
+#endif
 
 class Window_c : public QWidget
 {
     Q_OBJECT
 
     QVBoxLayout* mainLayout_pri;
-
+#ifdef __ANDROID__
+    QScrollArea* scrollArea_pri;
+    QWidget* baseWidget_pri;
+#endif
     QLabel* statusBarLabel_pri;
     QTableWidget* fileTable_pri;
     QPushButton* clearFileListButton_pri;
@@ -85,6 +91,7 @@ class Window_c : public QWidget
     void hashRows_f(const std::vector<int>& rows_par_con);
     void loadFileList_f(const QStringList& fileList_par_con);
     void hashingStatusThread_f();
+    void enableFormatTypeRadios_f(const bool enabled_par_con);
 public:
     Window_c();
     ~Window_c();

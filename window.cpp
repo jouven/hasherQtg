@@ -44,16 +44,27 @@ void Window_c::clearHashFields_f()
 void Window_c::resizeFileTable_f()
 {
     fileTable_pri->resizeColumnsToContents();
-#ifndef __ANDROID__
+    fileTable_pri->adjustSize();
+    //scrollArea_pri->adjustSize();
+    //adjustSize();
+//#ifndef __ANDROID__
     QTimer::singleShot(100,[=]
     {
+#ifdef __ANDROID__
+        baseWidget_pri->adjustSize();
+#else
         adjustSize();
-    });
 #endif
+
+        //fileTable_pri->adjustSize();
+        //fileTable_pri->resizeColumnsToContents();
+    });
+//#endif
 }
 
 Window_c::Window_c()
 {
+    const QRect screenGeometry = QApplication::desktop()->availableGeometry(this);
     statusBarLabel_pri = new QLabel;
 
     statusBarLabel_pri->setText(tr("Files/folders can be drop inside the window to add them to the list"));
@@ -189,20 +200,49 @@ Window_c::Window_c()
     //fileTable_pri->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     fileTable_pri->setContextMenuPolicy(Qt::CustomContextMenu);
     fileTable_pri->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+#ifdef __ANDROID__
+    fileTable_pri->setMinimumHeight(screenGeometry.height() / 3);
+#endif
     connect(fileTable_pri, &QTableWidget::customContextMenuRequested,
             this, &Window_c::contextMenu);
-
+#ifdef __ANDROID__
+    baseWidget_pri = new QWidget(this);
+    baseWidget_pri->setAcceptDrops(true);
+#else
     this->setAcceptDrops(true);
+#endif
     centralLayout->addWidget(fileTable_pri, 6, 0, 1, 3);
 
     mainLayout_pri = new QVBoxLayout;
     mainLayout_pri->addLayout(centralLayout);
     mainLayout_pri->addWidget(statusBarLabel_pri);
+#ifdef __ANDROID__
+    baseWidget_pri->setLayout(mainLayout_pri);
+#else
     this->setLayout(mainLayout_pri);
+#endif
+
+#ifdef __ANDROID__
+    scrollArea_pri = new QScrollArea(this);
+    scrollArea_pri->setWidget(baseWidget_pri);
+    //scrollArea_pri->verticalScrollBar()->setFixedWidth(screenGeometry.width() * 0.05);
+    //scrollArea_pri->horizontalScrollBar()->setFixedHeight(screenGeometry.height() * 0.04);
+    scrollArea_pri->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    scrollArea_pri->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    //scrollArea_pri->setAlignment(Qt::AlignBottom | Qt::AlignRight);
+    scrollArea_pri->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+    scrollArea_pri->resize(screenGeometry.width(), screenGeometry.height());
+    //scrollArea_pri->setWidgetResizable(true);
+#endif
+
 
     setWindowTitle(tr("HasherQtg"));
-//    const QRect screenGeometry = QApplication::desktop()->screenGeometry(this);
-//    resize(screenGeometry.width() / 2, screenGeometry.height() / 3);
+
+    //TODO android has bugs, scrollto has no effect
+#ifdef __ANDROID__
+    baseWidget_pri->resize(scrollArea_pri->width() * 0.96, scrollArea_pri->height() * 0.95);
+#endif
+    //resize(screenGeometry.width(), screenGeometry.height() * 0.99);
 
     QTimer* mainLoopTimer = new QTimer(qApp);
     QObject::connect(mainLoopTimer, &QTimer::timeout, this, &Window_c::mainLoop_f);
@@ -1026,6 +1066,26 @@ void Window_c::hashingStatusThread_f()
     hashingCurrentFile_pri.clear();
 }
 
+//add another argument in the future if format and type must not be enabled/blocked at the same time
+void Window_c::enableFormatTypeRadios_f(const bool enabled_par_con)
+{
+    hashFormatBase64Radio_pri->setEnabled(enabled_par_con);
+    hashFormatDecimalRadio_pri->setEnabled(enabled_par_con);
+    hashFormatHexadecimalRadio_pri->setEnabled(enabled_par_con);
+//    hashFormatBase64Radio_pri->blockSignals(blockValue_par_con);
+//    hashFormatDecimalRadio_pri->blockSignals(blockValue_par_con);
+//    hashFormatHexadecimalRadio_pri->blockSignals(blockValue_par_con);
+
+    hashTypeCrc32cRadio_pri->setEnabled(enabled_par_con);
+    hashTypeSHA256Radio_pri->setEnabled(enabled_par_con);
+    hashTypeWhirlpoolRadio_pri->setEnabled(enabled_par_con);
+    hashTypeXXHashRadio_pri->setEnabled(enabled_par_con);
+//    hashTypeCrc32cRadio_pri->blockSignals(blockValue_par_con);
+//    hashTypeSHA256Radio_pri->blockSignals(blockValue_par_con);
+//    hashTypeWhirlpoolRadio_pri->blockSignals(blockValue_par_con);
+//    hashTypeXXHashRadio_pri->blockSignals(blockValue_par_con);
+}
+
 void Window_c::hashList_f(const bool saveAfter_par_con)
 {
     if (hashing_pri)
@@ -1051,6 +1111,7 @@ void Window_c::hashList_f(const bool saveAfter_par_con)
 
     int ret(msgBox.exec());
 
+    enableFormatTypeRadios_f(false);
     bool rehashTmp(ret == QMessageBox::Yes);
 
     threadedFunction_c* funcHashList = new threadedFunction_c([=]
@@ -1087,11 +1148,12 @@ void Window_c::hashList_f(const bool saveAfter_par_con)
         }
         allHashed_pri = true;
         hashing_pri = false;
+        enableFormatTypeRadios_f(true);
         if (saveAfter_par_con)
         {
             Q_EMIT saveAfterHash_signal_f();
         }
-        //Q_EMIT resizeFileTable_signal_f();
+        Q_EMIT resizeFileTable_signal_f();
         //qInfo() << "rowIndex_ite final" << endl;
     });
 
@@ -1173,7 +1235,7 @@ void Window_c::hashRows_f(const std::vector<int>& rows_par_con)
 
 void Window_c::showTips_f()
 {
-   QMessageBox::about(this, tr("Tipst"),
+   QMessageBox::about(this, tr("Tips"),
                       tr(
                           "<p>1 Changing hash type/format radios clears hash values</p>"
                           "<p>2 Loading saved files will change the format/type radios to the last loaded file values</p>"
