@@ -35,6 +35,11 @@ Images
 
 ![](../master/images/Screenshot_windows10.PNG)
 
+*Android 5*
+
+![](../master/images/Screenshot_Android5_QT592_1.png)
+![](../master/images/Screenshot_Android5_QT592_2.png)
+
 Save file
 ------------
 ```javascript
