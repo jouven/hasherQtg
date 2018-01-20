@@ -128,6 +128,11 @@ Window_c::Window_c()
     //useRelativePathOnSave_pri->setFont(defaultButtonFont);
     centralLayout->addWidget(useRelativePathOnSaveCheckBox_pri, 2, 1);
 
+#ifdef Q_OS_WIN32
+    useSlashSeparatorCheckbox_pri = new QCheckBox(tr("Use slash as folder separator"));
+    centralLayout->addWidget(useSlashSeparatorCheckbox_pri, 2, 2);
+#endif
+
     //tips button
     //QIcon aboutIcon = QIcon::fromTheme("help-about", QIcon(":/images/about.png"));
     tipsButton_pri = new QPushButton(tr("Tips"));
@@ -573,7 +578,11 @@ void Window_c::changeHashFormatProg_f()
 void Window_c::addDirectoryToList_f(const QFileInfo& dir_par_con)
 {
     //get the file contents of the directory and pass the files to tryAddFileToList_f(
+#ifdef Q_OS_WIN32
+    std::vector<QString> fileStrVector(fileDataController_c::getFilesFromDirectory(dir_par_con, true, useSlashSeparatorCheckbox_pri->isChecked()));
+#else
     std::vector<QString> fileStrVector(fileDataController_c::getFilesFromDirectory(dir_par_con));
+#endif
     for (const QString& fileStr_ite_con : fileStrVector)
     {
         tryAddFileToList_f(fileStr_ite_con);

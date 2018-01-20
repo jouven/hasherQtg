@@ -49,6 +49,9 @@ class Window_c : public QWidget
     QRadioButton* hashFormatBase64Radio_pri;
 
     QCheckBox* useRelativePathOnSaveCheckBox_pri;
+#ifdef Q_OS_WIN32
+    QCheckBox* useSlashSeparatorCheckbox_pri;
+#endif
     //QPushButton* exitButton_pri;
 
     //not required, it doesn't run on a different thread

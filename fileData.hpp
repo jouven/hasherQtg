@@ -110,6 +110,7 @@ public:
     static std::vector<QString> getFilesFromDirectory(
             const QFileInfo& directory_par_con
             , const bool useAbsolutePaths_par_con = true
+            , const bool useSlashSeparator_par_con = false
             , const bool includeSubdirectories_par_con = true
             , const QStringList& filenameFilters_par_con = QStringList()
             , const QString& includeDirectoriesWithFileX_par_con = QString());

@@ -153,6 +153,7 @@ eines::hasher_c::hashType_ec fileDataController_c::hashType_f() const
 std::vector<QString> fileDataController_c::getFilesFromDirectory(
         const QFileInfo& directory_par_con
         , const bool useAbsolutePaths_par_con
+        , const bool useSlashSeparator_par_con
         , const bool includeSubdirectories_par_con
         , const QStringList& filenameFilters_par_con
         , const QString& includeDirectoriesWithFileX_par_con
@@ -197,11 +198,11 @@ std::vector<QString> fileDataController_c::getFilesFromDirectory(
                 QString filePathTmp;
                 if (useAbsolutePaths_par_con)
                 {
-                    filePathTmp = QDir::toNativeSeparators(sourceFileTmp.filePath());
+                    filePathTmp = useSlashSeparator_par_con ? sourceFileTmp.filePath() : QDir::toNativeSeparators(sourceFileTmp.filePath());
                 }
                 else
                 {
-                    filePathTmp = QDir::toNativeSeparators(sourceDir.relativeFilePath(sourceFileTmp.filePath()));
+                    filePathTmp = useSlashSeparator_par_con ? sourceDir.relativeFilePath(sourceFileTmp.filePath()) : QDir::toNativeSeparators(sourceDir.relativeFilePath(sourceFileTmp.filePath()));
                 }
                 result.emplace_back(filePathTmp);
             }
@@ -263,11 +264,11 @@ std::vector<QString> fileDataController_c::getFilesFromDirectory(
                             QString filePathTmp;
                             if (useAbsolutePaths_par_con)
                             {
-                                filePathTmp = QDir::toNativeSeparators(sourceFileTmp.filePath());
+                                filePathTmp = useSlashSeparator_par_con ? sourceFileTmp.filePath() : QDir::toNativeSeparators(sourceFileTmp.filePath());
                             }
                             else
                             {
-                                filePathTmp = QDir::toNativeSeparators(sourceDir.relativeFilePath(sourceFileTmp.filePath()));
+                                filePathTmp = useSlashSeparator_par_con ? sourceDir.relativeFilePath(sourceFileTmp.filePath()) : QDir::toNativeSeparators(sourceDir.relativeFilePath(sourceFileTmp.filePath()));
                             }
                             result.emplace_back(filePathTmp);
                         }
