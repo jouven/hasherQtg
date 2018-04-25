@@ -17,7 +17,7 @@
 #include <chrono>
 #include <unordered_set>
 
-void Window_c::closeEvent(QCloseEvent* event)
+void mainWindow_c::closeEvent(QCloseEvent* event)
 {
     if (eines::signal::isRunning_f())
     {
@@ -26,7 +26,7 @@ void Window_c::closeEvent(QCloseEvent* event)
     event->ignore();
 }
 
-void Window_c::clearHashFields_f()
+void mainWindow_c::clearHashFields_f()
 {
     for (auto rowIndex_ite = 0, l = fileTable_pri->rowCount(); rowIndex_ite < l; ++rowIndex_ite)
     {
@@ -41,7 +41,7 @@ void Window_c::clearHashFields_f()
     }
 }
 
-void Window_c::resizeFileTable_f()
+void mainWindow_c::resizeFileTable_f()
 {
     fileTable_pri->resizeColumnsToContents();
     fileTable_pri->adjustSize();
@@ -62,7 +62,7 @@ void Window_c::resizeFileTable_f()
 //#endif
 }
 
-Window_c::Window_c()
+mainWindow_c::mainWindow_c()
 {
     const QRect screenGeometry = QApplication::desktop()->availableGeometry(this);
     statusBarLabel_pri = new QLabel;
@@ -79,48 +79,48 @@ Window_c::Window_c()
     //clearFileListButton_pri->setFont(defaultButtonFont);
 
     centralLayout->addWidget(clearFileListButton_pri, 0, 2);
-    QObject::connect(clearFileListButton_pri, &QPushButton::clicked, this, &Window_c::clearFileList_f);
+    QObject::connect(clearFileListButton_pri, &QPushButton::clicked, this, &mainWindow_c::clearFileList_f);
 
     //add file selection
     //QIcon loadIcon = QIcon::fromTheme("document-open", QIcon(":/images/browse.png"));
     addFileSelectionToListButton_pri = new QPushButton(tr("Add file/s to List"));
     //addFileSelectionToListButton_pri->setFont(defaultButtonFont);
     centralLayout->addWidget(addFileSelectionToListButton_pri, 0, 0);
-    QObject::connect(addFileSelectionToListButton_pri, &QPushButton::clicked, this, &Window_c::addFileSelectionToList_f);
+    QObject::connect(addFileSelectionToListButton_pri, &QPushButton::clicked, this, &mainWindow_c::addFileSelectionToList_f);
 
     //add directory
     //QIcon loadIcon = QIcon::fromTheme("document-open", QIcon(":/images/browse.png"));
     addDirectoryToListButton_pri = new QPushButton(tr("Add directory contents to List"));
     //addDirectoryToListButton_pri->setFont(defaultButtonFont);
     centralLayout->addWidget(addDirectoryToListButton_pri, 0, 1);
-    QObject::connect(addDirectoryToListButton_pri, &QPushButton::clicked, this, &Window_c::browseDirectoryToAdd_f);
+    QObject::connect(addDirectoryToListButton_pri, &QPushButton::clicked, this, &mainWindow_c::browseDirectoryToAdd_f);
 
     //hash list
     //QIcon loadIcon = QIcon::fromTheme("document-open", QIcon(":/images/hash.png"));
     hashListButton_pri = new QPushButton(tr("Hash List"));
     //hashListButton_pri->setFont(defaultButtonFont);
     centralLayout->addWidget(hashListButton_pri, 1, 0);
-    QObject::connect(hashListButton_pri, &QPushButton::clicked, this, &Window_c::hashList_f);
+    QObject::connect(hashListButton_pri, &QPushButton::clicked, this, &mainWindow_c::hashList_f);
 
     //load list from file
     QIcon loadIcon = QIcon::fromTheme("document-open", QIcon(":/images/open.png"));
     loadSavedListButton_pri = new QPushButton(loadIcon, tr("Load saved List"));
     //loadSavedListButton_pri->setFont(defaultButtonFont);
     centralLayout->addWidget(loadSavedListButton_pri, 1, 1);
-    QObject::connect(loadSavedListButton_pri, &QPushButton::clicked, this, &Window_c::dialogLoadFileList_f);
+    QObject::connect(loadSavedListButton_pri, &QPushButton::clicked, this, &mainWindow_c::dialogLoadFileList_f);
 
     //clear matching
     clearMatching_pri = new QPushButton(tr("Clear matching"));
     //clearMatching_pri->setFont(defaultButtonFont);
     centralLayout->addWidget(clearMatching_pri, 1, 2);
-    QObject::connect(clearMatching_pri, &QPushButton::clicked, this, &Window_c::clearMachingRows_f);
+    QObject::connect(clearMatching_pri, &QPushButton::clicked, this, &mainWindow_c::clearMachingRows_f);
 
     //save (and hash if necessary) list into a file
     QIcon saveIcon = QIcon::fromTheme("document-save", QIcon(":/images/save.png"));
     saveListButton_pri = new QPushButton(saveIcon, tr("Save List"));
     //saveListButton_pri->setFont(defaultButtonFont);
     centralLayout->addWidget(saveListButton_pri, 2, 0);
-    QObject::connect(saveListButton_pri, &QPushButton::clicked, this, &Window_c::dialogSaveFileList_f);
+    QObject::connect(saveListButton_pri, &QPushButton::clicked, this, &mainWindow_c::dialogSaveFileList_f);
 
     //check use relative path on save
     //QIcon aboutIcon = QIcon::fromTheme("help-about", QIcon(":/images/about.png"));
@@ -138,14 +138,14 @@ Window_c::Window_c()
     tipsButton_pri = new QPushButton(tr("Tips"));
     //aboutButton_pri->setFont(defaultButtonFont);
     centralLayout->addWidget(tipsButton_pri, 3, 0);
-    QObject::connect(tipsButton_pri, &QPushButton::clicked, this, &Window_c::showTips_f);
+    QObject::connect(tipsButton_pri, &QPushButton::clicked, this, &mainWindow_c::showTips_f);
 
     //about button
     QIcon aboutIcon = QIcon::fromTheme("help-about", QIcon(":/images/about.png"));
     aboutButton_pri = new QPushButton(aboutIcon, tr("About"));
     //aboutButton_pri->setFont(defaultButtonFont);
     centralLayout->addWidget(aboutButton_pri, 3, 1);
-    QObject::connect(aboutButton_pri, &QPushButton::clicked, this, &Window_c::showAboutMessage_f);
+    QObject::connect(aboutButton_pri, &QPushButton::clicked, this, &mainWindow_c::showAboutMessage_f);
 
     //hash type radio
     hashTypeCrc32cRadio_pri = new QRadioButton(tr("crc32c"));
@@ -209,7 +209,7 @@ Window_c::Window_c()
     fileTable_pri->setMinimumHeight(screenGeometry.height() / 3);
 #endif
     connect(fileTable_pri, &QTableWidget::customContextMenuRequested,
-            this, &Window_c::contextMenu);
+            this, &mainWindow_c::contextMenu);
 #ifdef __ANDROID__
     baseWidget_pri = new QWidget(this);
     baseWidget_pri->setAcceptDrops(true);
@@ -250,7 +250,7 @@ Window_c::Window_c()
     //resize(screenGeometry.width(), screenGeometry.height() * 0.99);
 
     QTimer* mainLoopTimer = new QTimer(qApp);
-    QObject::connect(mainLoopTimer, &QTimer::timeout, this, &Window_c::mainLoop_f);
+    QObject::connect(mainLoopTimer, &QTimer::timeout, this, &mainWindow_c::mainLoop_f);
     mainLoopTimer->start(500);
 
     if (appConfig_f().configLoaded_f())
@@ -272,24 +272,24 @@ Window_c::Window_c()
         }
     }
 
-    QObject::connect(this, &Window_c::setStatusBarText_signal_f, statusBarLabel_pri, &QLabel::setText);
-    QObject::connect(this, &Window_c::scrollToItem_signal_f, this, &Window_c::scrollToItem_f);
-    QObject::connect(this, &Window_c::setRowCellField_signal_f, this, &Window_c::setRowCellField_f);
-    QObject::connect(this, &Window_c::setHashRowCellField_signal_f, this, &Window_c::setHashRowCellField_f);
-    QObject::connect(this, &Window_c::saveAfterHash_signal_f, this, &Window_c::dialogSaveFileList_f);
-    QObject::connect(this, &Window_c::resizeFileTable_signal_f, this, &Window_c::resizeFileTable_f);
+    QObject::connect(this, &mainWindow_c::setStatusBarText_signal_f, statusBarLabel_pri, &QLabel::setText);
+    QObject::connect(this, &mainWindow_c::scrollToItem_signal_f, this, &mainWindow_c::scrollToItem_f);
+    QObject::connect(this, &mainWindow_c::setRowCellField_signal_f, this, &mainWindow_c::setRowCellField_f);
+    QObject::connect(this, &mainWindow_c::setHashRowCellField_signal_f, this, &mainWindow_c::setHashRowCellField_f);
+    QObject::connect(this, &mainWindow_c::saveAfterHash_signal_f, this, &mainWindow_c::dialogSaveFileList_f);
+    QObject::connect(this, &mainWindow_c::resizeFileTable_signal_f, this, &mainWindow_c::resizeFileTable_f);
 
-    QObject::connect(hashTypeCrc32cRadio_pri, &QRadioButton::toggled , this, &Window_c::changeHashType_f);
-    QObject::connect(hashTypeXXHashRadio_pri, &QRadioButton::toggled , this, &Window_c::changeHashType_f);
-    QObject::connect(hashTypeSHA256Radio_pri, &QRadioButton::toggled , this, &Window_c::changeHashType_f);
-    QObject::connect(hashTypeWhirlpoolRadio_pri, &QRadioButton::toggled , this, &Window_c::changeHashType_f);
+    QObject::connect(hashTypeCrc32cRadio_pri, &QRadioButton::toggled , this, &mainWindow_c::changeHashType_f);
+    QObject::connect(hashTypeXXHashRadio_pri, &QRadioButton::toggled , this, &mainWindow_c::changeHashType_f);
+    QObject::connect(hashTypeSHA256Radio_pri, &QRadioButton::toggled , this, &mainWindow_c::changeHashType_f);
+    QObject::connect(hashTypeWhirlpoolRadio_pri, &QRadioButton::toggled , this, &mainWindow_c::changeHashType_f);
 
-    QObject::connect(hashFormatDecimalRadio_pri, &QRadioButton::toggled , this, &Window_c::changeHashFormat_f);
-    QObject::connect(hashFormatHexadecimalRadio_pri, &QRadioButton::toggled , this, &Window_c::changeHashFormat_f);
-    QObject::connect(hashFormatBase64Radio_pri, &QRadioButton::toggled , this, &Window_c::changeHashFormat_f);
+    QObject::connect(hashFormatDecimalRadio_pri, &QRadioButton::toggled , this, &mainWindow_c::changeHashFormat_f);
+    QObject::connect(hashFormatHexadecimalRadio_pri, &QRadioButton::toggled , this, &mainWindow_c::changeHashFormat_f);
+    QObject::connect(hashFormatBase64Radio_pri, &QRadioButton::toggled , this, &mainWindow_c::changeHashFormat_f);
 }
 
-Window_c::~Window_c()
+mainWindow_c::~mainWindow_c()
 {
     appConfig_f().setWindowGeometry_f(saveGeometry());
     QStringList selectedDirectoryHistory;
@@ -306,7 +306,7 @@ Window_c::~Window_c()
     }
 }
 
-void Window_c::processPositionalArguments_f(const QStringList& positionalArguments_par_con)
+void mainWindow_c::processPositionalArguments_f(const QStringList& positionalArguments_par_con)
 {
     QTimer::singleShot(15,[=]
     {
@@ -317,7 +317,7 @@ void Window_c::processPositionalArguments_f(const QStringList& positionalArgumen
     });
 }
 
-void Window_c::addDirectoryHistory_f(const QString& directory_par_con)
+void mainWindow_c::addDirectoryHistory_f(const QString& directory_par_con)
 {
     uint_fast64_t nowTmp(std::chrono::steady_clock::now().time_since_epoch().count());
     directoryPathToDateTime_pri.insert(directory_par_con, nowTmp);
@@ -332,7 +332,7 @@ void Window_c::addDirectoryHistory_f(const QString& directory_par_con)
     }
 }
 
-std::vector<QString> Window_c::directoryHistory_f() const
+std::vector<QString> mainWindow_c::directoryHistory_f() const
 {
     std::vector<QString> historyVector;
     historyVector.reserve(dateTimeToDirectoryPath_pri.size());
@@ -344,7 +344,7 @@ std::vector<QString> Window_c::directoryHistory_f() const
     return historyVector;
 }
 
-void Window_c::dragEnterEvent(QDragEnterEvent* event)
+void mainWindow_c::dragEnterEvent(QDragEnterEvent* event)
 {
     if (event->mimeData()->hasUrls() and not hashing_pri)
     {
@@ -352,7 +352,7 @@ void Window_c::dragEnterEvent(QDragEnterEvent* event)
     }
 }
 
-void Window_c::dropEvent(QDropEvent* event)
+void mainWindow_c::dropEvent(QDropEvent* event)
 {
     for (const QUrl& url_ite_con : event->mimeData()->urls())
     {
@@ -376,7 +376,7 @@ void Window_c::dropEvent(QDropEvent* event)
     resizeFileTable_f();
 }
 
-void Window_c::mainLoop_f()
+void mainWindow_c::mainLoop_f()
 {
     if (finalCounterSeconds_pri == 0 and qThreadCount_f() == 0)
     {
@@ -394,12 +394,12 @@ void Window_c::mainLoop_f()
 //    });
 }
 
-void Window_c::setRowCellField_f(const int row_par_con, const int column_par_con, const QString& text_par_con)
+void mainWindow_c::setRowCellField_f(const int row_par_con, const int column_par_con, const QString& text_par_con)
 {
     fileTable_pri->item(row_par_con, column_par_con)->setText(text_par_con);
 }
 
-void Window_c::setHashRowCellField_f(const int row_par_con, const int column_par_con, const QString& text_par_con)
+void mainWindow_c::setHashRowCellField_f(const int row_par_con, const int column_par_con, const QString& text_par_con)
 {
     fileTable_pri->item(row_par_con, column_par_con)->setText(text_par_con);
     if (not fileTable_pri->item(row_par_con, column_par_con + 1)->text().isEmpty())
@@ -416,12 +416,12 @@ void Window_c::setHashRowCellField_f(const int row_par_con, const int column_par
     }
 }
 
-void Window_c::scrollToItem_f(const int row_par_con)
+void mainWindow_c::scrollToItem_f(const int row_par_con)
 {
     fileTable_pri->scrollToItem(fileTable_pri->item(row_par_con, 0));
 }
 
-void Window_c::changeHashType_f()
+void mainWindow_c::changeHashType_f()
 {
     if (hashing_pri)
     {
@@ -456,7 +456,7 @@ void Window_c::changeHashType_f()
     clearHashFields_f();
 }
 
-void Window_c::changeHashTypeProg_f()
+void mainWindow_c::changeHashTypeProg_f()
 {
     bool clearHashFieldsTmp(false);
     while (true)
@@ -505,7 +505,7 @@ void Window_c::changeHashTypeProg_f()
     }
 }
 
-void Window_c::changeHashFormat_f()
+void mainWindow_c::changeHashFormat_f()
 {
     if (hashing_pri)
     {
@@ -535,7 +535,7 @@ void Window_c::changeHashFormat_f()
     clearHashFields_f();
 }
 
-void Window_c::changeHashFormatProg_f()
+void mainWindow_c::changeHashFormatProg_f()
 {
     bool clearHashFieldsTmp(false);
     while (true)
@@ -575,7 +575,7 @@ void Window_c::changeHashFormatProg_f()
     }
 }
 
-void Window_c::addDirectoryToList_f(const QFileInfo& dir_par_con)
+void mainWindow_c::addDirectoryToList_f(const QFileInfo& dir_par_con)
 {
     //get the file contents of the directory and pass the files to tryAddFileToList_f(
 #ifdef Q_OS_WIN32
@@ -594,7 +594,7 @@ void Window_c::addDirectoryToList_f(const QFileInfo& dir_par_con)
     resizeFileTable_f();
 }
 
-void Window_c::browseDirectoryToAdd_f()
+void mainWindow_c::browseDirectoryToAdd_f()
 {
     if (hashing_pri)
     {
@@ -649,7 +649,7 @@ void Window_c::browseDirectoryToAdd_f()
     }
 }
 
-bool Window_c::tryAddFileToList_f(
+bool mainWindow_c::tryAddFileToList_f(
         const QString& filePath_par_con
         , const QString& savedHash_par_con
 )
@@ -729,7 +729,7 @@ bool Window_c::tryAddFileToList_f(
     return successTmp;
 }
 
-void Window_c::addFileSelectionToList_f()
+void mainWindow_c::addFileSelectionToList_f()
 {
     if (hashing_pri)
     {
@@ -788,7 +788,7 @@ void Window_c::addFileSelectionToList_f()
     }
 }
 
-void Window_c::clearFileList_f()
+void mainWindow_c::clearFileList_f()
 {
     if (hashing_pri)
     {
@@ -806,7 +806,7 @@ void Window_c::clearFileList_f()
     statusBarLabel_pri->setText(tr("List cleared"));
 }
 
-void Window_c::dialogLoadFileList_f()
+void mainWindow_c::dialogLoadFileList_f()
 {
     if (hashing_pri)
     {
@@ -848,7 +848,7 @@ void Window_c::dialogLoadFileList_f()
     }
 }
 
-void Window_c::loadFileList_f(const QStringList& fileList_par_con)
+void mainWindow_c::loadFileList_f(const QStringList& fileList_par_con)
 {
     if (not fileList_par_con.isEmpty())
     {
@@ -871,7 +871,7 @@ void Window_c::loadFileList_f(const QStringList& fileList_par_con)
             }
             else
             {
-                statusBarLabel_pri->setText(tr("Could not open config file config.json"));
+                statusBarLabel_pri->setText(tr("Could not open config file ") + savedFile.fileName());
                 errorTmp = true;
                 break;
             }
@@ -925,7 +925,7 @@ void Window_c::loadFileList_f(const QStringList& fileList_par_con)
     }
 }
 
-void Window_c::dialogSaveFileList_f()
+void mainWindow_c::dialogSaveFileList_f()
 {
     if (hashing_pri)
     {
@@ -1032,7 +1032,7 @@ void Window_c::dialogSaveFileList_f()
     }
 }
 
-void Window_c::hashingStatusThread_f()
+void mainWindow_c::hashingStatusThread_f()
 {
     while (hashing_pri and eines::signal::isRunning_f())
     {
@@ -1076,7 +1076,7 @@ void Window_c::hashingStatusThread_f()
 }
 
 //add another argument in the future if format and type must not be enabled/blocked at the same time
-void Window_c::enableFormatTypeRadios_f(const bool enabled_par_con)
+void mainWindow_c::enableFormatTypeRadios_f(const bool enabled_par_con)
 {
     hashFormatBase64Radio_pri->setEnabled(enabled_par_con);
     hashFormatDecimalRadio_pri->setEnabled(enabled_par_con);
@@ -1095,7 +1095,7 @@ void Window_c::enableFormatTypeRadios_f(const bool enabled_par_con)
 //    hashTypeXXHashRadio_pri->blockSignals(blockValue_par_con);
 }
 
-void Window_c::hashList_f(const bool saveAfter_par_con)
+void mainWindow_c::hashList_f(const bool saveAfter_par_con)
 {
     if (hashing_pri)
     {
@@ -1182,7 +1182,7 @@ void Window_c::hashList_f(const bool saveAfter_par_con)
     funcHashList->start();
 }
 
-void Window_c::hashRows_f(const std::vector<int>& rows_par_con)
+void mainWindow_c::hashRows_f(const std::vector<int>& rows_par_con)
 {
     if (hashing_pri)
     {
@@ -1242,7 +1242,7 @@ void Window_c::hashRows_f(const std::vector<int>& rows_par_con)
     funcHashList->start();
 }
 
-void Window_c::showTips_f()
+void mainWindow_c::showTips_f()
 {
    QMessageBox::about(this, tr("Tips"),
                       tr(
@@ -1257,7 +1257,7 @@ void Window_c::showTips_f()
                       );
 }
 
-void Window_c::clearMachingRows_f()
+void mainWindow_c::clearMachingRows_f()
 {
     std::vector<int> rowToRemoveTmp;
     for (auto rowIndex_ite = 0, l = fileTable_pri->rowCount(); rowIndex_ite < l; ++rowIndex_ite)
@@ -1287,7 +1287,7 @@ void Window_c::clearMachingRows_f()
     }
 }
 
-void Window_c::showAboutMessage_f()
+void mainWindow_c::showAboutMessage_f()
 {
    QMessageBox::about(this, tr("About hasherQtg"),
                       tr(
@@ -1299,7 +1299,7 @@ void Window_c::showAboutMessage_f()
    );
 }
 
-void Window_c::contextMenu(const QPoint &pos)
+void mainWindow_c::contextMenu(const QPoint &pos)
 {
     if (fileTable_pri->rowCount() == 0 or fileTable_pri->selectedItems().size() == 0)
     {

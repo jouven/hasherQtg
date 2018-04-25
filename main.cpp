@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
         locateConfigFilePath_f(commandLineParser, false);
     }
 
-    Window_c window;
+    mainWindow_c window;
     window.show();
     window.processPositionalArguments_f(positionalArgs);
     returnValue_ext = qtapp.exec();

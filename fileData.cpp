@@ -78,7 +78,7 @@ void fileData_c::read_f(const QJsonObject& json)
 //    }
 //    else
 //    {
-    if (not json["hash"].isNull())
+    if (not json["hash"].isUndefined())
     {
         hashStr_pri = json["hash"].toString().toStdString();
     }
@@ -89,6 +89,10 @@ void fileData_c::relativePathsTo_f(const QDir& saveFileParent_par_con)
 {
     filePath_pri = saveFileParent_par_con.relativeFilePath(filePath_pri);
 }
+
+fileData_c::fileData_c()
+    : id_pri(nextFileDataId_f())
+{}
 
 fileData_c::fileData_c(
         const QString& filename_par_con

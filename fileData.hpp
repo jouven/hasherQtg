@@ -29,7 +29,7 @@ class fileData_c
     std::string hashStr_pri;
     //bool hashStrSet_pri = false;
 public:
-    fileData_c() = default;
+    fileData_c();
     //id is automatically assigned each a time an fileData_c object is created,
     //first id is 0, afterwards is previous + 1
     fileData_c(
@@ -78,7 +78,7 @@ public:
 //main hub of data
 class fileDataController_c
 {
-    //key = row number, value = fileData id
+    //key = fileData id, value = row number
     std::unordered_map<int_fast64_t, int> fileDataIdToRow_pri;
     //key = filePath, value = fileData id
     QHash<QString, int_fast64_t> filePathTofileDataIdUMap_pri;

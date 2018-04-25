@@ -53,8 +53,7 @@ CONFIG(debug, debug|release){
 }
 }
 
-if (android)
-{
+if (android){
 #release
 CONFIG(release, debug|release){
     LIBS += -L$${MYPATH}home/jouven/mylibsAndroid/release
@@ -95,8 +94,7 @@ linux:QMAKE_LFLAGS_RELEASE += -flto=jobserver
 #specified
 #this is done in the project tab I just add debug/release files,
 #then I copy this code and change release <-> debug to get the other
-if (android)
-{
+if (android){
 #release
 CONFIG(release, debug|release){
 contains(ANDROID_TARGET_ARCH,armeabi-v7a) {

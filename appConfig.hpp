@@ -34,7 +34,7 @@ public:
 
     QStringList selectedDirectoryHistory_f() const;
     void setSelectedDirectoryHistory_f(const QStringList& selectedDirectoryHistory_par_con);
-    bool selectedDirectoryHistorySet_f() const;
+    //bool selectedDirectoryHistorySet_f() const;
 
 };
 

@@ -17,7 +17,7 @@ class QCheckBox;
 class QScrollArea;
 #endif
 
-class Window_c : public QWidget
+class mainWindow_c : public QWidget
 {
     Q_OBJECT
 
@@ -96,8 +96,8 @@ class Window_c : public QWidget
     void hashingStatusThread_f();
     void enableFormatTypeRadios_f(const bool enabled_par_con);
 public:
-    Window_c();
-    ~Window_c();
+    mainWindow_c();
+    ~mainWindow_c();
     void processPositionalArguments_f(const QStringList& positionalArguments_par_con);
 Q_SIGNALS:
     //text to set
