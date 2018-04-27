@@ -17,6 +17,9 @@ class QCheckBox;
 class QScrollArea;
 #endif
 
+//TODO migrate a lot of improvements done in actonQtg, like the remove of the destructor on the mainwindow
+//the way of loading previous navigated folders on the sidebar of the "browse" windows
+
 class mainWindow_c : public QWidget
 {
     Q_OBJECT
