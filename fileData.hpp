@@ -6,7 +6,7 @@
 #ifndef HASHERQTG_FILEDATA_HPP
 #define HASHERQTG_FILEDATA_HPP
 
-#include "criptoQtso/hashQt.hpp"
+#include "cryptoQtso/hashQt.hpp"
 
 #include <QHash>
 #include <QString>

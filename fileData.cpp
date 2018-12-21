@@ -1,6 +1,6 @@
 #include "fileData.hpp"
 
-#include "criptoQtso/hashQt.hpp"
+#include "cryptoQtso/hashQt.hpp"
 #include "signalso/signal.hpp"
 
 #include <QJsonArray>
@@ -305,7 +305,7 @@ void fileDataController_c::setHashFormat_f(const eines::hasher_c::outputType_ec 
 //{
 //    for (std::pair<const int_fast64_t, fileData_c>& fileData_ite : fileDataIdToFileDataUMap_pri)
 //    {
-//        if (not eines::signal::isRunning_f())
+//        if (not signalso::isRunning_f())
 //        {
 //            break;
 //        }

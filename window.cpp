@@ -19,9 +19,9 @@
 
 void mainWindow_c::closeEvent(QCloseEvent* event)
 {
-    if (eines::signal::isRunning_f())
+    if (signalso::isRunning_f())
     {
-        eines::signal::stopRunning_f();
+        signalso::stopRunning_f();
     }
     event->ignore();
 }
@@ -300,9 +300,9 @@ mainWindow_c::~mainWindow_c()
     }
     appConfig_f().setSelectedDirectoryHistory_f(selectedDirectoryHistory);
     appConfig_f().saveConfigFile_f();
-    if (eines::signal::isRunning_f())
+    if (signalso::isRunning_f())
     {
-        eines::signal::stopRunning_f();
+        signalso::stopRunning_f();
     }
 }
 
@@ -378,11 +378,11 @@ void mainWindow_c::dropEvent(QDropEvent* event)
 
 void mainWindow_c::mainLoop_f()
 {
-    if (finalCounterSeconds_pri == 0 and qThreadCount_f() == 0)
+    if (finalCounterSeconds_pri == 0 and threadedFunction_c::qThreadCount_f() == 0)
     {
         QApplication::exit();
     }
-    if (not eines::signal::isRunning_f())
+    if (not signalso::isRunning_f())
     {
         statusBarLabel_pri->setText(tr("Exiting..."));
         finalCounterSeconds_pri = finalCounterSeconds_pri - 1;
@@ -586,7 +586,7 @@ void mainWindow_c::addDirectoryToList_f(const QFileInfo& dir_par_con)
     for (const QString& fileStr_ite_con : fileStrVector)
     {
         tryAddFileToList_f(fileStr_ite_con);
-        if (not eines::signal::isRunning_f())
+        if (not signalso::isRunning_f())
         {
             break;
         }
@@ -772,7 +772,7 @@ void mainWindow_c::addFileSelectionToList_f()
             for (const QString& fileStr_ite_con : selectedFiles)
             {
                 tryAddFileToList_f(fileStr_ite_con);
-                if (not eines::signal::isRunning_f())
+                if (not signalso::isRunning_f())
                 {
                     break;
                 }
@@ -897,7 +897,7 @@ void mainWindow_c::loadFileList_f(const QStringList& fileList_par_con)
                 for (const fileData_c& fileData_ite_con : fileDataRootObj.fileDataVector_f())
                 {
                     thisFileLoadedSomething = tryAddFileToList_f(fileData_ite_con.filePath_f(), QString::fromStdString(fileData_ite_con.hashStr_f())) or thisFileLoadedSomething;
-                    if (not eines::signal::isRunning_f())
+                    if (not signalso::isRunning_f())
                     {
                         break;
                     }
@@ -908,7 +908,7 @@ void mainWindow_c::loadFileList_f(const QStringList& fileList_par_con)
                 statusBarLabel_pri->setText(tr("Save file loaded " + fileStr_ite_con.toUtf8()));
                 somethingLoaded = true;
             }
-            if (not eines::signal::isRunning_f())
+            if (not signalso::isRunning_f())
             {
                 break;
             }
@@ -1034,9 +1034,9 @@ void mainWindow_c::dialogSaveFileList_f()
 
 void mainWindow_c::hashingStatusThread_f()
 {
-    while (hashing_pri and eines::signal::isRunning_f())
+    while (hashing_pri and signalso::isRunning_f())
     {
-        while (eines::signal::isRunning_f() and hashing_pri)
+        while (signalso::isRunning_f() and hashing_pri)
         {
             {
                 QMutexLocker lockerTmp(&hashingCurrentFolderQMutex_pri);
@@ -1150,7 +1150,7 @@ void mainWindow_c::hashList_f(const bool saveAfter_par_con)
                     Q_EMIT setHashRowCellField_signal_f(rowIndex_ite, 2, QString::fromStdString(fileDataPairTmp->second.hashStr_f()));
                 }
             }
-            if (not eines::signal::isRunning_f())
+            if (not signalso::isRunning_f())
             {
                 break;
             }
@@ -1218,7 +1218,7 @@ void mainWindow_c::hashRows_f(const std::vector<int>& rows_par_con)
             {
                 Q_EMIT setHashRowCellField_signal_f(row_ite_con, 2, QString::fromStdString(fileDataPairTmp->second.hashStr_f()));
             }
-            if (not eines::signal::isRunning_f())
+            if (not signalso::isRunning_f())
             {
                 break;
             }

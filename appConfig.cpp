@@ -96,7 +96,7 @@ bool appConfig_c::saveConfigFile_f() const
         }
         else
         {
-            configFileStr = configFileDefaultPath_f();
+            configFileStr = fileTypePath_f(fileTypes_ec::config);
         }
 
         QFile configFileSaveTmp(configFileStr);
