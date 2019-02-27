@@ -65,6 +65,8 @@ void mainWindow_c::resizeFileTable_f()
 mainWindow_c::mainWindow_c()
 {
     const QRect screenGeometry = QApplication::desktop()->availableGeometry(this);
+    //one for the hashing and the other to update the gui "animation"
+    threadedFunction_c::setMaxConcurrentQThreads_f(2);
     statusBarLabel_pri = new QLabel;
 
     statusBarLabel_pri->setText(tr("Files/folders can be drop inside the window to add them to the list"));
@@ -251,7 +253,7 @@ mainWindow_c::mainWindow_c()
 
     QTimer* mainLoopTimer = new QTimer(qApp);
     QObject::connect(mainLoopTimer, &QTimer::timeout, this, &mainWindow_c::mainLoop_f);
-    mainLoopTimer->start(500);
+    mainLoopTimer->start(1000);
 
     if (appConfig_f().configLoaded_f())
     {
@@ -378,13 +380,14 @@ void mainWindow_c::dropEvent(QDropEvent* event)
 
 void mainWindow_c::mainLoop_f()
 {
-    if (finalCounterSeconds_pri == 0 and threadedFunction_c::qThreadCount_f() == 0)
+    if (finalCounterSeconds_pri <= 0 and threadedFunction_c::qThreadCount_f() == 0)
     {
         QApplication::exit();
     }
     if (not signalso::isRunning_f())
     {
-        statusBarLabel_pri->setText(tr("Exiting..."));
+        statusBarLabel_pri->setText(tr("Exiting in ") + QString::number(finalCounterSeconds_pri)
+        + ((finalCounterSeconds_pri < 0) ? " (negative number means current file is still hashing, will exit after)" : ""));
         finalCounterSeconds_pri = finalCounterSeconds_pri - 1;
     }
 //    QTimer::singleShot(0,[=]
@@ -1034,44 +1037,49 @@ void mainWindow_c::dialogSaveFileList_f()
 
 void mainWindow_c::hashingStatusThread_f()
 {
-    while (hashing_pri and signalso::isRunning_f())
+    while (hashing_pri)
     {
-        while (signalso::isRunning_f() and hashing_pri)
+        while (hashing_pri)
         {
+            QMutexLocker lockerTmp(&hashingCurrentFolderQMutex_pri);
+            if (statusBarHashingAnimationStatus_pri == 0)
             {
-                QMutexLocker lockerTmp(&hashingCurrentFolderQMutex_pri);
-                Q_EMIT scrollToItem_signal_f(hashingCurrentRow_pri);
-                if (statusBarHashingAnimationStatus_pri == 0)
-                {
-                    Q_EMIT setStatusBarText_signal_f(tr("Hashing.") + " "" "" " + hashingCurrentFile_pri);
-                    statusBarHashingAnimationStatus_pri = 1;
-                    break;
-                }
-                //if (statusBarLabel_pri->text().startsWith("Hashing. "))
-                if (statusBarHashingAnimationStatus_pri == 1)
-                {
-                    Q_EMIT setStatusBarText_signal_f(tr("Hashing..") + " "" " + hashingCurrentFile_pri);
-                    statusBarHashingAnimationStatus_pri = 2;
-                    break;
-                }
-                if (statusBarHashingAnimationStatus_pri == 2)
-                    //if (statusBarLabel_pri->text().startsWith("Hashing.. "))
-                {
-                    Q_EMIT setStatusBarText_signal_f(tr("Hashing...") + " " + hashingCurrentFile_pri);
-                    statusBarHashingAnimationStatus_pri = 0;
-                    break;
-                }
-                statusBarHashingAnimationStatus_pri = 0;
+                Q_EMIT setStatusBarText_signal_f(tr("Hashing.") + " "" "" " + hashingCurrentFile_pri);
+                statusBarHashingAnimationStatus_pri = 1;
+                break;
             }
-            QThread::msleep(1000);
-            Q_EMIT setStatusBarText_signal_f(tr("Hashing...") + " " + hashingCurrentFile_pri);
-
+            //if (statusBarLabel_pri->text().startsWith("Hashing. "))
+            if (statusBarHashingAnimationStatus_pri == 1)
+            {
+                Q_EMIT setStatusBarText_signal_f(tr("Hashing..") + " "" " + hashingCurrentFile_pri);
+                statusBarHashingAnimationStatus_pri = 2;
+                break;
+            }
+            if (statusBarHashingAnimationStatus_pri == 2)
+                //if (statusBarLabel_pri->text().startsWith("Hashing.. "))
+            {
+                Q_EMIT setStatusBarText_signal_f(tr("Hashing...") + " " + hashingCurrentFile_pri);
+                statusBarHashingAnimationStatus_pri = 0;
+                break;
+            }
+            //is this needed?
+            statusBarHashingAnimationStatus_pri = 0;
             break;
         }
-        //smooth +60fps
-        QThread::msleep(15);
+        if (signalso::isRunning_f())
+        {
+            //keep going
+        }
+        else
+        {
+            break;
+        }
+        QThread::msleep(30);
     }
-    Q_EMIT setStatusBarText_signal_f(tr("All files hashed"));
+    if (signalso::isRunning_f())
+    {
+        Q_EMIT setStatusBarText_signal_f(tr("All files hashed"));
+    }
     hashingCurrentFile_pri.clear();
 }
 
@@ -1125,6 +1133,7 @@ void mainWindow_c::hashList_f(const bool saveAfter_par_con)
 
     threadedFunction_c* funcHashList = new threadedFunction_c([=]
     {
+        bool firstHashWithValueIteratedTmp(false);
         for (auto rowIndex_ite = 0, l = fileTable_pri->rowCount(); rowIndex_ite < l; ++rowIndex_ite)
         {
             QString filenameTmp(fileTable_pri->item(rowIndex_ite, 0)->text());
@@ -1140,6 +1149,7 @@ void mainWindow_c::hashList_f(const bool saveAfter_par_con)
                     QMutexLocker lockerTmp(&hashingCurrentFolderQMutex_pri);
                     hashingCurrentRow_pri = rowIndex_ite;
                     hashingCurrentFile_pri = filenameTmp;
+                    Q_EMIT scrollToItem_signal_f(hashingCurrentRow_pri);
                 }
                 auto oldHash(fileDataPairTmp->second.hashStr_f());
                 //qInfo() << "rehashing " << rehash << endl;
@@ -1148,20 +1158,39 @@ void mainWindow_c::hashList_f(const bool saveAfter_par_con)
                 if (oldHash != fileDataPairTmp->second.hashStr_f())
                 {
                     Q_EMIT setHashRowCellField_signal_f(rowIndex_ite, 2, QString::fromStdString(fileDataPairTmp->second.hashStr_f()));
+                    if (firstHashWithValueIteratedTmp)
+                    {
+                        //once the first resize is done just keep going
+                    }
+                    else
+                    {
+                        if (fileDataPairTmp->second.hashStr_f().size() > 1)
+                        {
+                            firstHashWithValueIteratedTmp = true;
+                            Q_EMIT resizeFileTable_signal_f();
+                        }
+                    }
                 }
             }
-            if (not signalso::isRunning_f())
+            if (signalso::isRunning_f())
+            {
+                //keep going
+            }
+            else
             {
                 break;
             }
         }
-        allHashed_pri = true;
-        hashing_pri = false;
-        enableFormatTypeRadios_f(true);
-        if (saveAfter_par_con)
+        //don't do the end stuff if program is exiting
+        if (signalso::isRunning_f())
         {
-            Q_EMIT saveAfterHash_signal_f();
+            allHashed_pri = true;
+            if (saveAfter_par_con)
+            {
+                Q_EMIT saveAfterHash_signal_f();
+            }
         }
+        hashing_pri = false;
         Q_EMIT resizeFileTable_signal_f();
         //qInfo() << "rowIndex_ite final" << endl;
     });
@@ -1178,6 +1207,7 @@ void mainWindow_c::hashList_f(const bool saveAfter_par_con)
     QObject::connect(funcStatusHash, &QThread::finished, funcStatusHash, &QThread::deleteLater);
     funcStatusHash->start();
 
+    QObject::connect(funcHashList, &QThread::finished, this, [=]{enableFormatTypeRadios_f(true);});
     QObject::connect(funcHashList, &QThread::finished, funcHashList, &QThread::deleteLater);
     funcHashList->start();
 }
@@ -1199,6 +1229,7 @@ void mainWindow_c::hashRows_f(const std::vector<int>& rows_par_con)
     //rows_par_con must be by copy because THIS function ends but the thread continues
     threadedFunction_c* funcHashList = new threadedFunction_c([=]//, &rows_par_con]
     {
+        bool firstHashWithValueIteratedTmp(false);
         for (const int row_ite_con : rows_par_con)
         {
             QString filenameTmp(fileTable_pri->item(row_ite_con, 0)->text());
@@ -1209,6 +1240,7 @@ void mainWindow_c::hashRows_f(const std::vector<int>& rows_par_con)
                 QMutexLocker lockerTmp(&hashingCurrentFolderQMutex_pri);
                 hashingCurrentRow_pri = row_ite_con;
                 hashingCurrentFile_pri = filenameTmp;
+                Q_EMIT scrollToItem_signal_f(hashingCurrentRow_pri);
             }
             auto oldHash(fileDataPairTmp->second.hashStr_f());
 
@@ -1217,15 +1249,31 @@ void mainWindow_c::hashRows_f(const std::vector<int>& rows_par_con)
             if (oldHash != fileDataPairTmp->second.hashStr_f())
             {
                 Q_EMIT setHashRowCellField_signal_f(row_ite_con, 2, QString::fromStdString(fileDataPairTmp->second.hashStr_f()));
+                if (firstHashWithValueIteratedTmp)
+                {
+                    //once the first resize is done just keep going
+                }
+                else
+                {
+                    if (fileDataPairTmp->second.hashStr_f().size() > 1)
+                    {
+                        firstHashWithValueIteratedTmp = true;
+                        Q_EMIT resizeFileTable_signal_f();
+                    }
+                }
             }
-            if (not signalso::isRunning_f())
+            if (signalso::isRunning_f())
+            {
+                //keep going
+            }
+            else
             {
                 break;
             }
         }
 
         hashing_pri = false;
-        //Q_EMIT resizeFileTable_signal_f();
+        Q_EMIT resizeFileTable_signal_f();
     });
 
     threadedFunction_c* funcStatusHash = new threadedFunction_c([=]

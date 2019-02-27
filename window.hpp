@@ -97,7 +97,7 @@ class mainWindow_c : public QWidget
     void hashRows_f(const std::vector<int>& rows_par_con);
     void loadFileList_f(const QStringList& fileList_par_con);
     void hashingStatusThread_f();
-    void enableFormatTypeRadios_f(const bool enabled_par_con);
+
 public:
     mainWindow_c();
     ~mainWindow_c();
@@ -132,6 +132,7 @@ private Q_SLOTS:
     //void exit_f();
     void showTips_f();
     void clearMachingRows_f();
+    void enableFormatTypeRadios_f(const bool enabled_par_con);
 };
 
 #endif //HASHERQTG_WINDOW_HPP
