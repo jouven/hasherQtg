@@ -72,7 +72,7 @@ void fileData_c::read_f(const QJsonObject& json)
 {
     filePath_pri = json["filePath"].toString();
     fileSize_pri = json["size"].toInt();
-//    if (outputType_par_con == eines::hasher_c::outputType_ec::unsigned64bitInteger)
+//    if (outputType_par_con == hasher_c::outputType_ec::unsigned64bitInteger)
 //    {
 //        hashNumeric_pri = json["hash"].toInt();
 //    }
@@ -109,9 +109,9 @@ void fileData_c::generateHash_f(
     //if forced or none of the hashes are set
     if (force_par_con or hashStr_f().empty())
     {
-        eines::hasher_c hasher
+        hasher_c hasher
         (
-            eines::hasher_c::inputType_ec::file
+            hasher_c::inputType_ec::file
             , filePath_pri
             , dataHub_f().hashFormat_f()
             , dataHub_f().hashType_f()
@@ -149,7 +149,7 @@ int_fast64_t fileData_c::id_f() const
 //////////////////
 //fileDataController_c
 //////////////////
-eines::hasher_c::hashType_ec fileDataController_c::hashType_f() const
+hasher_c::hashType_ec fileDataController_c::hashType_f() const
 {
     return hashType_pri;
 }
@@ -286,17 +286,17 @@ std::vector<QString> fileDataController_c::getFilesFromDirectory(
     return result;
 }
 
-void fileDataController_c::setHashType_f(const eines::hasher_c::hashType_ec hashType_par_con)
+void fileDataController_c::setHashType_f(const hasher_c::hashType_ec hashType_par_con)
 {
     hashType_pri = hashType_par_con;
 }
 
-eines::hasher_c::outputType_ec fileDataController_c::hashFormat_f() const
+hasher_c::outputType_ec fileDataController_c::hashFormat_f() const
 {
     return hashFormat_pri;
 }
 
-void fileDataController_c::setHashFormat_f(const eines::hasher_c::outputType_ec hashFormat_par_con)
+void fileDataController_c::setHashFormat_f(const hasher_c::outputType_ec hashFormat_par_con)
 {
     hashFormat_pri = hashFormat_par_con;
 }
@@ -423,12 +423,12 @@ std::vector<fileData_c> fileDataRoot_c::fileDataVector_f() const
     return fileDataVector_pri;
 }
 
-eines::hasher_c::hashType_ec fileDataRoot_c::hashType_f() const
+hasher_c::hashType_ec fileDataRoot_c::hashType_f() const
 {
     return hashType_pri;
 }
 
-eines::hasher_c::outputType_ec fileDataRoot_c::hashFormat_f() const
+hasher_c::outputType_ec fileDataRoot_c::hashFormat_f() const
 {
     return hashFormat_pri;
 }
@@ -442,8 +442,8 @@ void fileDataRoot_c::relativePathsTo_f(const QDir& saveFileParent_par_con)
 }
 
 fileDataRoot_c::fileDataRoot_c(const std::vector<fileData_c>& fileDataVector_par_con
-                               , const eines::hasher_c::hashType_ec hashType_par_con
-            , const eines::hasher_c::outputType_ec hashFormat_par_con)
+                               , const hasher_c::hashType_ec hashType_par_con
+            , const hasher_c::outputType_ec hashFormat_par_con)
         : fileDataVector_pri(fileDataVector_par_con)
         , hashType_pri(hashType_par_con)
         , hashFormat_pri(hashFormat_par_con)
@@ -451,32 +451,32 @@ fileDataRoot_c::fileDataRoot_c(const std::vector<fileData_c>& fileDataVector_par
 
 void fileDataRoot_c::write_f(QJsonObject& json) const
 {
-    if (hashType_pri == eines::hasher_c::hashType_ec::crc32c)
+    if (hashType_pri == hasher_c::hashType_ec::crc32c)
     {
         json["hashType"] = "crc32c";
     }
-    if (hashType_pri == eines::hasher_c::hashType_ec::SHA256)
+    if (hashType_pri == hasher_c::hashType_ec::SHA256)
     {
         json["hashType"] = "SHA256";
     }
-    if (hashType_pri == eines::hasher_c::hashType_ec::whirlpool)
+    if (hashType_pri == hasher_c::hashType_ec::whirlpool)
     {
         json["hashType"] = "whirlpool";
     }
-    if (hashType_pri == eines::hasher_c::hashType_ec::XXHASH64)
+    if (hashType_pri == hasher_c::hashType_ec::XXHASH64)
     {
         json["hashType"] = "XXHASH64";
     }
 
-    if (hashFormat_pri == eines::hasher_c::outputType_ec::decimalString)
+    if (hashFormat_pri == hasher_c::outputType_ec::decimalString)
     {
         json["hashFormat"] = "decimal";
     }
-    if (hashFormat_pri == eines::hasher_c::outputType_ec::hexadecimalString)
+    if (hashFormat_pri == hasher_c::outputType_ec::hexadecimalString)
     {
         json["hashFormat"] = "hex";
     }
-    if (hashFormat_pri == eines::hasher_c::outputType_ec::base64String)
+    if (hashFormat_pri == hasher_c::outputType_ec::base64String)
     {
         json["hashFormat"] = "base64";
     }
@@ -494,32 +494,32 @@ void fileDataRoot_c::read_f(const QJsonObject& json)
 {
     if (json["hashFormat"].toString() == "decimal")
     {
-        hashFormat_pri = eines::hasher_c::outputType_ec::decimalString;
+        hashFormat_pri = hasher_c::outputType_ec::decimalString;
     }
     if (json["hashFormat"].toString() == "hex")
     {
-        hashFormat_pri = eines::hasher_c::outputType_ec::hexadecimalString;
+        hashFormat_pri = hasher_c::outputType_ec::hexadecimalString;
     }
     if (json["hashFormat"].toString() == "base64")
     {
-        hashFormat_pri = eines::hasher_c::outputType_ec::base64String;
+        hashFormat_pri = hasher_c::outputType_ec::base64String;
     }
 
     if (json["hashType"].toString() == "crc32c")
     {
-        hashType_pri = eines::hasher_c::hashType_ec::crc32c;
+        hashType_pri = hasher_c::hashType_ec::crc32c;
     }
     if (json["hashType"].toString() == "SHA256")
     {
-        hashType_pri = eines::hasher_c::hashType_ec::SHA256;
+        hashType_pri = hasher_c::hashType_ec::SHA256;
     }
     if (json["hashType"].toString() == "whirlpool")
     {
-        hashType_pri = eines::hasher_c::hashType_ec::whirlpool;
+        hashType_pri = hasher_c::hashType_ec::whirlpool;
     }
     if (json["hashType"].toString() == "XXHASH64")
     {
-        hashType_pri = eines::hasher_c::hashType_ec::XXHASH64;
+        hashType_pri = hasher_c::hashType_ec::XXHASH64;
     }
 
     QJsonArray arrayTmp(json["files"].toArray());

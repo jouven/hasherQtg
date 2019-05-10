@@ -436,22 +436,22 @@ void mainWindow_c::changeHashType_f()
     {
         if (changedRadioTmp == hashTypeCrc32cRadio_pri)
         {
-            dataHub_f().setHashType_f(eines::hasher_c::hashType_ec::crc32c);
+            dataHub_f().setHashType_f(hasher_c::hashType_ec::crc32c);
             break;
         }
         if (changedRadioTmp == hashTypeXXHashRadio_pri)
         {
-            dataHub_f().setHashType_f(eines::hasher_c::hashType_ec::XXHASH64);
+            dataHub_f().setHashType_f(hasher_c::hashType_ec::XXHASH64);
             break;
         }
         if (changedRadioTmp == hashTypeSHA256Radio_pri)
         {
-            dataHub_f().setHashType_f(eines::hasher_c::hashType_ec::SHA256);
+            dataHub_f().setHashType_f(hasher_c::hashType_ec::SHA256);
             break;
         }
         if (changedRadioTmp == hashTypeWhirlpoolRadio_pri)
         {
-            dataHub_f().setHashType_f(eines::hasher_c::hashType_ec::whirlpool);
+            dataHub_f().setHashType_f(hasher_c::hashType_ec::whirlpool);
             break;
         }
         break;
@@ -464,7 +464,7 @@ void mainWindow_c::changeHashTypeProg_f()
     bool clearHashFieldsTmp(false);
     while (true)
     {
-        if (dataHub_f().hashType_f() == eines::hasher_c::hashType_ec::crc32c)
+        if (dataHub_f().hashType_f() == hasher_c::hashType_ec::crc32c)
         {
             if (not hashTypeCrc32cRadio_pri->isChecked())
             {
@@ -473,7 +473,7 @@ void mainWindow_c::changeHashTypeProg_f()
             hashTypeCrc32cRadio_pri->setChecked(true);
             break;
         }
-        if (dataHub_f().hashType_f() == eines::hasher_c::hashType_ec::XXHASH64)
+        if (dataHub_f().hashType_f() == hasher_c::hashType_ec::XXHASH64)
         {
             if (not hashTypeXXHashRadio_pri->isChecked())
             {
@@ -482,7 +482,7 @@ void mainWindow_c::changeHashTypeProg_f()
             hashTypeXXHashRadio_pri->setChecked(true);
             break;
         }
-        if (dataHub_f().hashType_f() == eines::hasher_c::hashType_ec::SHA256)
+        if (dataHub_f().hashType_f() == hasher_c::hashType_ec::SHA256)
         {
             if (not hashTypeSHA256Radio_pri->isChecked())
             {
@@ -491,7 +491,7 @@ void mainWindow_c::changeHashTypeProg_f()
             hashTypeSHA256Radio_pri->setChecked(true);
             break;
         }
-        if (dataHub_f().hashType_f() == eines::hasher_c::hashType_ec::whirlpool)
+        if (dataHub_f().hashType_f() == hasher_c::hashType_ec::whirlpool)
         {
             if (not hashTypeWhirlpoolRadio_pri->isChecked())
             {
@@ -520,17 +520,17 @@ void mainWindow_c::changeHashFormat_f()
     {
         if (changedRadioTmp == hashFormatDecimalRadio_pri)
         {
-            dataHub_f().setHashFormat_f(eines::hasher_c::outputType_ec::decimalString);
+            dataHub_f().setHashFormat_f(hasher_c::outputType_ec::decimalString);
             break;
         }
         if (changedRadioTmp == hashFormatHexadecimalRadio_pri)
         {
-            dataHub_f().setHashFormat_f(eines::hasher_c::outputType_ec::hexadecimalString);
+            dataHub_f().setHashFormat_f(hasher_c::outputType_ec::hexadecimalString);
             break;
         }
         if (changedRadioTmp == hashFormatBase64Radio_pri)
         {
-            dataHub_f().setHashFormat_f(eines::hasher_c::outputType_ec::base64String);
+            dataHub_f().setHashFormat_f(hasher_c::outputType_ec::base64String);
             break;
         }
         break;
@@ -543,7 +543,7 @@ void mainWindow_c::changeHashFormatProg_f()
     bool clearHashFieldsTmp(false);
     while (true)
     {
-        if (dataHub_f().hashFormat_f() == eines::hasher_c::outputType_ec::decimalString)
+        if (dataHub_f().hashFormat_f() == hasher_c::outputType_ec::decimalString)
         {
             if (not hashFormatDecimalRadio_pri->isChecked())
             {
@@ -552,7 +552,7 @@ void mainWindow_c::changeHashFormatProg_f()
             hashFormatDecimalRadio_pri->setChecked(true);
             break;
         }
-        if (dataHub_f().hashFormat_f() == eines::hasher_c::outputType_ec::hexadecimalString)
+        if (dataHub_f().hashFormat_f() == hasher_c::outputType_ec::hexadecimalString)
         {
             if (not hashFormatHexadecimalRadio_pri->isChecked())
             {
@@ -561,7 +561,7 @@ void mainWindow_c::changeHashFormatProg_f()
             hashFormatHexadecimalRadio_pri->setChecked(true);
             break;
         }
-        if (dataHub_f().hashFormat_f() == eines::hasher_c::outputType_ec::base64String)
+        if (dataHub_f().hashFormat_f() == hasher_c::outputType_ec::base64String)
         {
             if (not hashFormatBase64Radio_pri->isChecked())
             {
@@ -675,7 +675,7 @@ bool mainWindow_c::tryAddFileToList_f(
         rowTmp = dataHub_f().fileDataIdToRow_f(fileDataIdTmp);
 
         //update size
-        fileTable_pri->item(rowTmp, 1)->setText(QString::fromStdString(eines::formatByteSizeValue_f(fileInfoTmp.size())));
+        fileTable_pri->item(rowTmp, 1)->setText(QString::fromStdString(formatByteSizeValue_f(fileInfoTmp.size())));
 //        //clear the hash
 //        fileTable_pri->item(rowTmp, 2)->setText("");
         fileTable_pri->item(rowTmp, 3)->setText(savedHash_par_con);
@@ -700,7 +700,7 @@ bool mainWindow_c::tryAddFileToList_f(
         fileNameCell = new QTableWidgetItem(absoluteFilePathTmp);
         fileNameCell->setFlags(fileNameCell->flags() bitand compl Qt::ItemIsEditable);
 
-        QTableWidgetItem *sizeCell = new QTableWidgetItem(QString::fromStdString(eines::formatByteSizeValue_f(fileInfoTmp.size())));
+        QTableWidgetItem *sizeCell = new QTableWidgetItem(QString::fromStdString(formatByteSizeValue_f(fileInfoTmp.size())));
         sizeCell->setFlags(sizeCell->flags() bitand compl Qt::ItemIsEditable);
         sizeCell->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 

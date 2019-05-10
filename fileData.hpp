@@ -57,20 +57,20 @@ public:
 class fileDataRoot_c
 {
     std::vector<fileData_c> fileDataVector_pri;
-    eines::hasher_c::hashType_ec hashType_pri = eines::hasher_c::hashType_ec::crc32c;
-    eines::hasher_c::outputType_ec hashFormat_pri = eines::hasher_c::outputType_ec::decimalString;
+    hasher_c::hashType_ec hashType_pri = hasher_c::hashType_ec::crc32c;
+    hasher_c::outputType_ec hashFormat_pri = hasher_c::outputType_ec::decimalString;
 public:
     fileDataRoot_c() = default;
     fileDataRoot_c(
             const std::vector<fileData_c>& fileDataVector_par_con
-            , const eines::hasher_c::hashType_ec hashType_par_con
-            , const eines::hasher_c::outputType_ec hashFormat_par_con);
+            , const hasher_c::hashType_ec hashType_par_con
+            , const hasher_c::outputType_ec hashFormat_par_con);
 
     void write_f(QJsonObject &json) const;
     void read_f(const QJsonObject &json);
     std::vector<fileData_c> fileDataVector_f() const;
-    eines::hasher_c::hashType_ec hashType_f() const;
-    eines::hasher_c::outputType_ec hashFormat_f() const;
+    hasher_c::hashType_ec hashType_f() const;
+    hasher_c::outputType_ec hashFormat_f() const;
 
     void relativePathsTo_f(const QDir& saveFileParent_par_con);
 };
@@ -85,8 +85,8 @@ class fileDataController_c
     //key = fileData Id, value = fileData obj
     std::unordered_map<int_fast64_t, fileData_c> fileDataIdToFileDataUMap_pri;
 
-    eines::hasher_c::hashType_ec hashType_pri = eines::hasher_c::hashType_ec::crc32c;
-    eines::hasher_c::outputType_ec hashFormat_pri = eines::hasher_c::outputType_ec::decimalString;
+    hasher_c::hashType_ec hashType_pri = hasher_c::hashType_ec::crc32c;
+    hasher_c::outputType_ec hashFormat_pri = hasher_c::outputType_ec::decimalString;
 
 public:
     fileDataController_c() = default;
@@ -115,10 +115,10 @@ public:
             , const QStringList& filenameFilters_par_con = QStringList()
             , const QString& includeDirectoriesWithFileX_par_con = QString());
 
-    eines::hasher_c::hashType_ec hashType_f() const;
-    void setHashType_f(const eines::hasher_c::hashType_ec hashType_par_con);
-    eines::hasher_c::outputType_ec hashFormat_f() const;
-    void setHashFormat_f(const eines::hasher_c::outputType_ec hashFormat_par_con);
+    hasher_c::hashType_ec hashType_f() const;
+    void setHashType_f(const hasher_c::hashType_ec hashType_par_con);
+    hasher_c::outputType_ec hashFormat_f() const;
+    void setHashFormat_f(const hasher_c::outputType_ec hashFormat_par_con);
 
     //OBSOLETED by std::unordered_map<int_fast64_t, fileData_c>::iterator fileData(const int_fast64_t fileDataId_par_con);
     //otherwise the hashing process was all or nothing, now is file by file
