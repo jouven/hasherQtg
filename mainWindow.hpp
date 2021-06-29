@@ -17,12 +17,11 @@ class QCheckBox;
 class QScrollArea;
 #endif
 
-//TODO migrate a lot of improvements done in actonQtg, like the remove of the destructor on the mainwindow
-//the way of loading previous navigated folders on the sidebar of the "browse" windows
-
 class mainWindow_c : public QWidget
 {
     Q_OBJECT
+
+    bool closingWindow_pri = false;
 
     QVBoxLayout* mainLayout_pri;
 #ifdef __ANDROID__
@@ -72,16 +71,11 @@ class mainWindow_c : public QWidget
     //mutex because reading/writing hashingCurrentFolder_pri can happen at the same time
     QMutex hashingCurrentFolderQMutex_pri;
 
-    int finalCounterSeconds_pri = 1;
-
     //variables and functions to control the directory history
     QMap<QString, uint_fast64_t> directoryPathToDateTime_pri;
     //lower values are first, ascending order (so time wise older are first),
     //delete old using first
     QMap<uint_fast64_t, QString> dateTimeToDirectoryPath_pri;
-
-    void addDirectoryHistory_f(const QString& directory_par_con);
-    std::vector<QString> directoryHistory_f() const;
 
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
@@ -100,8 +94,11 @@ class mainWindow_c : public QWidget
 
 public:
     mainWindow_c();
-    ~mainWindow_c();
-    void processPositionalArguments_f(const QStringList& positionalArguments_par_con);
+
+    //void processPositionalArguments_f(const QStringList& positionalArguments_par_con);
+public Q_SLOTS:
+    void start_f();
+
 Q_SIGNALS:
     //text to set
     void setStatusBarText_signal_f(const QString&);
@@ -112,6 +109,8 @@ Q_SIGNALS:
     void scrollToItem_signal_f(const int);
     void saveAfterHash_signal_f();
     void resizeFileTable_signal_f();
+
+    void closeWindow_signal();
 private Q_SLOTS:
     void contextMenu(const QPoint &pos);
     //button actions
@@ -122,7 +121,6 @@ private Q_SLOTS:
     void dialogLoadFileList_f();
     void dialogSaveFileList_f();
     void showAboutMessage_f();
-    void mainLoop_f();
     void setRowCellField_f(const int row_par_con, const int column_par_con, const QString& text_par_con);
     void setHashRowCellField_f(const int row_par_con, const int column_par_con, const QString& text_par_con);
     void scrollToItem_f(const int row_par_con);
@@ -134,5 +132,7 @@ private Q_SLOTS:
     void clearMachingRows_f();
     void enableFormatTypeRadios_f(const bool enabled_par_con);
 };
+
+extern mainWindow_c* mainWindow_ptr_ext;
 
 #endif //HASHERQTG_WINDOW_HPP

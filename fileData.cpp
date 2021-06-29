@@ -1,7 +1,7 @@
 #include "fileData.hpp"
 
-#include "cryptoQtso/hashQt.hpp"
-#include "signalso/signal.hpp"
+//#include "cryptoQtso/hashQt.hpp"
+//#include "signalso/signal.hpp"
 
 #include <QJsonArray>
 #include <QDir>

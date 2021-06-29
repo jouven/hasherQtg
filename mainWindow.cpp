@@ -2,13 +2,13 @@
 //searching in google/qt site doesn't provide any platform that needs it
 //2 add icons, right now in *nix it uses the current loaded theme ones, but in windows
 //this will not fly
-#include "window.hpp"
+#include "mainWindow.hpp"
 
 #include "fileData.hpp"
 #include "appConfig.hpp"
 
 #include "threadedFunctionQtso/threadedFunctionQt.hpp"
-#include "signalso/signal.hpp"
+//#include "signalso/signal.hpp"
 #include "sizeConversionso/byte.hpp"
 
 #include <QtWidgets>
@@ -19,11 +19,22 @@
 
 void mainWindow_c::closeEvent(QCloseEvent* event)
 {
-    if (signalso::isRunning_f())
+    closingWindow_pri = true;
+    statusBarLabel_pri->setText(appConfig_ptr_ext->translate_f("Exiting..."));
+
+    if (not hashing_pri)
     {
-        signalso::stopRunning_f();
+        appConfig_ptr_ext->setWidgetGeometry_f(this->objectName() + fileTable_pri->objectName() + fileTable_pri->horizontalHeader()->objectName(), fileTable_pri->horizontalHeader()->saveState());
+        appConfig_ptr_ext->setWidgetGeometry_f(this->objectName() + fileTable_pri->objectName(), fileTable_pri->saveGeometry());
+        appConfig_ptr_ext->setWidgetGeometry_f(this->objectName(), saveGeometry());
+        Q_EMIT closeWindow_signal();
+        event->accept();
     }
-    event->ignore();
+    else
+    {
+        event->ignore();
+        QTimer::singleShot(1000, this, &QWidget::close);
+    }
 }
 
 void mainWindow_c::clearHashFields_f()
@@ -64,9 +75,14 @@ void mainWindow_c::resizeFileTable_f()
 
 mainWindow_c::mainWindow_c()
 {
+    this->setObjectName("mainWindow_");
+}
+
+void mainWindow_c::start_f()
+{
     const QRect screenGeometry = QApplication::desktop()->availableGeometry(this);
-    //one for the hashing and the other to update the gui "animation"
-    threadedFunction_c::setMaxConcurrentQThreads_f(2);
+    //1 for signalProxyQtso, 1 for hasing, 1 for hashing status
+    threadedFunction_c::setMaxUsableThreads_f(3);
     statusBarLabel_pri = new QLabel;
 
     statusBarLabel_pri->setText(tr("Files/folders can be drop inside the window to add them to the list"));
@@ -196,6 +212,8 @@ mainWindow_c::mainWindow_c()
     centralLayout->addWidget(hashFormatGroupBoxTmp, 5, 0, 1, 3);
 
     fileTable_pri = new QTableWidget(0, 5);
+    fileTable_pri->setObjectName("QTableWidget_");
+    fileTable_pri->horizontalHeader()->setObjectName("QHeaderView_");
     fileTable_pri->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     QStringList labels;
@@ -251,27 +269,11 @@ mainWindow_c::mainWindow_c()
 #endif
     //resize(screenGeometry.width(), screenGeometry.height() * 0.99);
 
-    QTimer* mainLoopTimer = new QTimer(qApp);
-    QObject::connect(mainLoopTimer, &QTimer::timeout, this, &mainWindow_c::mainLoop_f);
-    mainLoopTimer->start(1000);
-
-    if (appConfig_f().configLoaded_f())
+    if (appConfig_ptr_ext->configLoaded_f())
     {
-        //qInfo() << "configFile_f().second" << endl;
-        if (appConfig_f().windowGeometrySet_f())
-        {
-            //qInfo() << "appConfig_f().windowGeometry_f() " << appConfig_f().windowGeometry_f() << endl;
-            restoreGeometry(appConfig_f().windowGeometry_f());
-        }
-
-        if (appConfig_f().selectedDirectoryHistorySet_f())
-        {
-            //qInfo() << "appConfig_f().recentlyCataloguedListSet_f() " << appConfig_f().recentlyCataloguedListSet_f() << endl;
-            for (const QString& directory_ite_con : appConfig_f().selectedDirectoryHistory_f())
-            {
-                addDirectoryHistory_f(directory_ite_con);
-            }
-        }
+        restoreGeometry(appConfig_ptr_ext->widgetGeometry_f(this->objectName()));
+        fileTable_pri->restoreGeometry(appConfig_ptr_ext->widgetGeometry_f(this->objectName() + fileTable_pri->objectName()));
+        fileTable_pri->horizontalHeader()->restoreState(appConfig_ptr_ext->widgetGeometry_f(this->objectName() + fileTable_pri->objectName() + fileTable_pri->horizontalHeader()->objectName()));
     }
 
     QObject::connect(this, &mainWindow_c::setStatusBarText_signal_f, statusBarLabel_pri, &QLabel::setText);
@@ -289,61 +291,10 @@ mainWindow_c::mainWindow_c()
     QObject::connect(hashFormatDecimalRadio_pri, &QRadioButton::toggled , this, &mainWindow_c::changeHashFormat_f);
     QObject::connect(hashFormatHexadecimalRadio_pri, &QRadioButton::toggled , this, &mainWindow_c::changeHashFormat_f);
     QObject::connect(hashFormatBase64Radio_pri, &QRadioButton::toggled , this, &mainWindow_c::changeHashFormat_f);
-}
 
-mainWindow_c::~mainWindow_c()
-{
-    appConfig_f().setWindowGeometry_f(saveGeometry());
-    QStringList selectedDirectoryHistory;
-    selectedDirectoryHistory.reserve(directoryPathToDateTime_pri.size());
-    for (const QString& directory_par_con : directoryHistory_f())
-    {
-        selectedDirectoryHistory.append(directory_par_con);
-    }
-    appConfig_f().setSelectedDirectoryHistory_f(selectedDirectoryHistory);
-    appConfig_f().saveConfigFile_f();
-    if (signalso::isRunning_f())
-    {
-        signalso::stopRunning_f();
-    }
-}
+    show();
 
-void mainWindow_c::processPositionalArguments_f(const QStringList& positionalArguments_par_con)
-{
-    QTimer::singleShot(15,[=]
-    {
-        if (not positionalArguments_par_con.isEmpty())
-        {
-            loadFileList_f(positionalArguments_par_con);
-        }
-    });
-}
-
-void mainWindow_c::addDirectoryHistory_f(const QString& directory_par_con)
-{
-    uint_fast64_t nowTmp(std::chrono::steady_clock::now().time_since_epoch().count());
-    directoryPathToDateTime_pri.insert(directory_par_con, nowTmp);
-    dateTimeToDirectoryPath_pri.insert(nowTmp, directory_par_con);
-    if (dateTimeToDirectoryPath_pri.size() > 10)
-    {
-        uint_fast64_t lastItemKeyTmp(dateTimeToDirectoryPath_pri.firstKey());
-        QString lastItemValueTmp(dateTimeToDirectoryPath_pri.first());
-
-        directoryPathToDateTime_pri.remove(lastItemValueTmp);
-        dateTimeToDirectoryPath_pri.remove(lastItemKeyTmp);
-    }
-}
-
-std::vector<QString> mainWindow_c::directoryHistory_f() const
-{
-    std::vector<QString> historyVector;
-    historyVector.reserve(dateTimeToDirectoryPath_pri.size());
-    for (const QString& directory_ite_con : dateTimeToDirectoryPath_pri)
-    {
-        historyVector.emplace_back(directory_ite_con);
-    }
-    std::reverse(historyVector.begin(), historyVector.end());
-    return historyVector;
+    loadFileList_f(appConfig_ptr_ext->commandLinePositionalArguments_f());
 }
 
 void mainWindow_c::dragEnterEvent(QDragEnterEvent* event)
@@ -376,25 +327,6 @@ void mainWindow_c::dropEvent(QDropEvent* event)
         }
     }
     resizeFileTable_f();
-}
-
-void mainWindow_c::mainLoop_f()
-{
-    if (finalCounterSeconds_pri <= 0 and threadedFunction_c::qThreadCount_f() == 0)
-    {
-        QApplication::exit();
-    }
-    if (not signalso::isRunning_f())
-    {
-        statusBarLabel_pri->setText(tr("Exiting in ") + QString::number(finalCounterSeconds_pri)
-        + ((finalCounterSeconds_pri < 0) ? " (negative number means current file is still hashing, will exit after)" : ""));
-        finalCounterSeconds_pri = finalCounterSeconds_pri - 1;
-    }
-//    QTimer::singleShot(0,[=]
-//    {
-//        //directoryComboBox_pri->adjustSize();
-//        adjustSize();
-//    });
 }
 
 void mainWindow_c::setRowCellField_f(const int row_par_con, const int column_par_con, const QString& text_par_con)
@@ -589,7 +521,7 @@ void mainWindow_c::addDirectoryToList_f(const QFileInfo& dir_par_con)
     for (const QString& fileStr_ite_con : fileStrVector)
     {
         tryAddFileToList_f(fileStr_ite_con);
-        if (not signalso::isRunning_f())
+        if (closingWindow_pri)
         {
             break;
         }
@@ -606,6 +538,7 @@ void mainWindow_c::browseDirectoryToAdd_f()
     }
 
     QFileDialog selectFolderDialogTmp(this);
+    selectFolderDialogTmp.setObjectName("selectFolderDialog_");
     selectFolderDialogTmp.setFileMode(QFileDialog::Directory);
     selectFolderDialogTmp.setDirectory(QDir::currentPath());
     selectFolderDialogTmp.setWindowTitle(tr("Select folder"));
@@ -618,16 +551,17 @@ void mainWindow_c::browseDirectoryToAdd_f()
 #endif
     selectFolderDialogTmp.setOption(QFileDialog::ReadOnly, true);
 
-    QList<QUrl> directoriesTmp;
-    directoriesTmp.reserve(directoryPathToDateTime_pri.size());
-    if (not directoryPathToDateTime_pri.isEmpty())
+    std::vector<QString> directoryHistoryTmp(appConfig_ptr_ext->directoryHistory_f(this->objectName() + selectFolderDialogTmp.objectName()));
+    if (not directoryHistoryTmp.empty())
     {
-        for (const QString& directory_par_con : directoryHistory_f())
+        QList<QUrl> directoriesTmp;
+        directoriesTmp.reserve(directoryHistoryTmp.size());
+        for (const QString& directory_par_con : directoryHistoryTmp)
         {
             directoriesTmp.append(QUrl::fromLocalFile(directory_par_con));
         }
+        selectFolderDialogTmp.setSidebarUrls(directoriesTmp);
     }
-    selectFolderDialogTmp.setSidebarUrls(directoriesTmp);
 
     selectFolderDialogTmp.exec();
 
@@ -642,7 +576,7 @@ void mainWindow_c::browseDirectoryToAdd_f()
         if (not directoryTmp.isEmpty())
         {
             addDirectoryToList_f(directoryTmp);
-            addDirectoryHistory_f(selectFolderDialogTmp.directory().path());
+            appConfig_ptr_ext->addDirectoryHistory_f(this->objectName() + selectFolderDialogTmp.objectName(), selectFolderDialogTmp.directory().path());
             statusBarLabel_pri->setText(tr("Directory added"));
         }
         else
@@ -743,7 +677,7 @@ void mainWindow_c::addFileSelectionToList_f()
     QFileDialog selectFilesDialogTmp(this);
     selectFilesDialogTmp.setFileMode(QFileDialog::ExistingFiles);
     selectFilesDialogTmp.setDirectory(QDir::currentPath());
-
+    selectFilesDialogTmp.setObjectName("selectFilesDialog_");
     selectFilesDialogTmp.setWindowTitle(tr("Select files"));
     selectFilesDialogTmp.setViewMode(QFileDialog::Detail);
     selectFilesDialogTmp.setFilter(QDir::Hidden | QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs | QDir::Drives);
@@ -754,16 +688,17 @@ void mainWindow_c::addFileSelectionToList_f()
     selectFilesDialogTmp.setGeometry(QApplication::desktop()->availableGeometry(this));
 #endif
 
-    QList<QUrl> directoriesTmp;
-    directoriesTmp.reserve(directoryPathToDateTime_pri.size());
-    if (not directoryPathToDateTime_pri.isEmpty())
+    std::vector<QString> directoryHistoryTmp(appConfig_ptr_ext->directoryHistory_f(this->objectName() + selectFilesDialogTmp.objectName()));
+    if (not directoryHistoryTmp.empty())
     {
-        for (const QString& directory_par_con : directoryHistory_f())
+        QList<QUrl> directoriesTmp;
+        directoriesTmp.reserve(directoryHistoryTmp.size());
+        for (const QString& directory_par_con : directoryHistoryTmp)
         {
             directoriesTmp.append(QUrl::fromLocalFile(directory_par_con));
         }
+        selectFilesDialogTmp.setSidebarUrls(directoriesTmp);
     }
-    selectFilesDialogTmp.setSidebarUrls(directoriesTmp);
 
     selectFilesDialogTmp.exec();
 
@@ -775,12 +710,12 @@ void mainWindow_c::addFileSelectionToList_f()
             for (const QString& fileStr_ite_con : selectedFiles)
             {
                 tryAddFileToList_f(fileStr_ite_con);
-                if (not signalso::isRunning_f())
+                if (closingWindow_pri)
                 {
                     break;
                 }
             }
-            addDirectoryHistory_f(selectFilesDialogTmp.directory().path());
+            appConfig_ptr_ext->addDirectoryHistory_f(this->objectName() + selectFilesDialogTmp.objectName(), selectFilesDialogTmp.directory().path());
             resizeFileTable_f();
             statusBarLabel_pri->setText(tr("Selected files added"));
         }
@@ -818,6 +753,7 @@ void mainWindow_c::dialogLoadFileList_f()
     }
 
     QFileDialog selectFilesDialogTmp(this);
+    selectFilesDialogTmp.setObjectName("selectFilesDialog2_");
     selectFilesDialogTmp.setFileMode(QFileDialog::ExistingFiles);
     selectFilesDialogTmp.setDirectory(QDir::currentPath());
 
@@ -831,23 +767,24 @@ void mainWindow_c::dialogLoadFileList_f()
     selectFilesDialogTmp.setGeometry(QApplication::desktop()->availableGeometry(this));
 #endif
 
-
-    QList<QUrl> directoriesTmp;
-    directoriesTmp.reserve(directoryPathToDateTime_pri.size());
-    if (not directoryPathToDateTime_pri.isEmpty())
+    std::vector<QString> directoryHistoryTmp(appConfig_ptr_ext->directoryHistory_f(this->objectName() + selectFilesDialogTmp.objectName()));
+    if (not directoryHistoryTmp.empty())
     {
-        for (const QString& directory_par_con : directoryHistory_f())
+        QList<QUrl> directoriesTmp;
+        directoriesTmp.reserve(directoryHistoryTmp.size());
+        for (const QString& directory_par_con : directoryHistoryTmp)
         {
             directoriesTmp.append(QUrl::fromLocalFile(directory_par_con));
         }
+        selectFilesDialogTmp.setSidebarUrls(directoriesTmp);
     }
-    selectFilesDialogTmp.setSidebarUrls(directoriesTmp);
 
     selectFilesDialogTmp.exec();
 
     if (selectFilesDialogTmp.result() == QDialog::Accepted)
     {
         loadFileList_f(selectFilesDialogTmp.selectedFiles());
+        appConfig_ptr_ext->addDirectoryHistory_f(this->objectName() + selectFilesDialogTmp.objectName(), selectFilesDialogTmp.directory().path());
     }
 }
 
@@ -900,7 +837,7 @@ void mainWindow_c::loadFileList_f(const QStringList& fileList_par_con)
                 for (const fileData_c& fileData_ite_con : fileDataRootObj.fileDataVector_f())
                 {
                     thisFileLoadedSomething = tryAddFileToList_f(fileData_ite_con.filePath_f(), QString::fromStdString(fileData_ite_con.hashStr_f())) or thisFileLoadedSomething;
-                    if (not signalso::isRunning_f())
+                    if (closingWindow_pri)
                     {
                         break;
                     }
@@ -911,7 +848,7 @@ void mainWindow_c::loadFileList_f(const QStringList& fileList_par_con)
                 statusBarLabel_pri->setText(tr("Save file loaded " + fileStr_ite_con.toUtf8()));
                 somethingLoaded = true;
             }
-            if (not signalso::isRunning_f())
+            if (closingWindow_pri)
             {
                 break;
             }
@@ -961,6 +898,7 @@ void mainWindow_c::dialogSaveFileList_f()
 
     //save the list in json format
     QFileDialog saveDialogTmp(this);
+    saveDialogTmp.setObjectName("saveDialog_");
     saveDialogTmp.setAcceptMode(QFileDialog::AcceptSave);
     saveDialogTmp.setFileMode(QFileDialog::AnyFile);
     saveDialogTmp.setDirectory(QDir::currentPath());
@@ -974,21 +912,24 @@ void mainWindow_c::dialogSaveFileList_f()
     saveDialogTmp.setGeometry(QApplication::desktop()->availableGeometry(this));
 #endif
 
-    QList<QUrl> directoriesTmp;
-    directoriesTmp.reserve(directoryPathToDateTime_pri.size());
-    if (not directoryPathToDateTime_pri.isEmpty())
+    std::vector<QString> directoryHistoryTmp(appConfig_ptr_ext->directoryHistory_f(this->objectName() + saveDialogTmp.objectName()));
+    if (not directoryHistoryTmp.empty())
     {
-        for (const QString& directory_par_con : directoryHistory_f())
+        QList<QUrl> directoriesTmp;
+        directoriesTmp.reserve(directoryHistoryTmp.size());
+        for (const QString& directory_par_con : directoryHistoryTmp)
         {
             directoriesTmp.append(QUrl::fromLocalFile(directory_par_con));
         }
+        saveDialogTmp.setSidebarUrls(directoriesTmp);
     }
-    saveDialogTmp.setSidebarUrls(directoriesTmp);
 
     saveDialogTmp.exec();
 
     while (saveDialogTmp.result() == QDialog::Accepted)
     {
+        appConfig_ptr_ext->addDirectoryHistory_f(this->objectName() + saveDialogTmp.objectName(), saveDialogTmp.directory().path());
+
         QString saveFileName;
         if (not saveDialogTmp.selectedFiles().isEmpty())
         {
@@ -1066,7 +1007,7 @@ void mainWindow_c::hashingStatusThread_f()
             statusBarHashingAnimationStatus_pri = 0;
             break;
         }
-        if (signalso::isRunning_f())
+        if (not closingWindow_pri)
         {
             //keep going
         }
@@ -1076,7 +1017,7 @@ void mainWindow_c::hashingStatusThread_f()
         }
         QThread::msleep(30);
     }
-    if (signalso::isRunning_f())
+    if (not closingWindow_pri)
     {
         Q_EMIT setStatusBarText_signal_f(tr("All files hashed"));
     }
@@ -1155,7 +1096,7 @@ void mainWindow_c::hashList_f(const bool saveAfter_par_con)
                 //qInfo() << "rehashing " << rehash << endl;
                 fileDataPairTmp->second.generateHash_f(rehashTmp);
 
-                if (oldHash != fileDataPairTmp->second.hashStr_f())
+                if (oldHash not_eq fileDataPairTmp->second.hashStr_f())
                 {
                     Q_EMIT setHashRowCellField_signal_f(rowIndex_ite, 2, QString::fromStdString(fileDataPairTmp->second.hashStr_f()));
                     if (firstHashWithValueIteratedTmp)
@@ -1172,7 +1113,7 @@ void mainWindow_c::hashList_f(const bool saveAfter_par_con)
                     }
                 }
             }
-            if (signalso::isRunning_f())
+            if (not closingWindow_pri)
             {
                 //keep going
             }
@@ -1182,7 +1123,7 @@ void mainWindow_c::hashList_f(const bool saveAfter_par_con)
             }
         }
         //don't do the end stuff if program is exiting
-        if (signalso::isRunning_f())
+        if (not closingWindow_pri)
         {
             allHashed_pri = true;
             if (saveAfter_par_con)
@@ -1262,7 +1203,7 @@ void mainWindow_c::hashRows_f(const std::vector<int>& rows_par_con)
                     }
                 }
             }
-            if (signalso::isRunning_f())
+            if (not closingWindow_pri)
             {
                 //keep going
             }
@@ -1446,3 +1387,5 @@ void mainWindow_c::contextMenu(const QPoint &pos)
         }
     }
 }
+
+mainWindow_c* mainWindow_ptr_ext = nullptr;

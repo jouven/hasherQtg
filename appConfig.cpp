@@ -1,157 +1,59 @@
 #include "appConfig.hpp"
+#include "mainWindow.hpp"
 
-//for the config file location
-#include "essentialQtso/essentialQt.hpp"
+#include "signalProxyQtso/signalProxyQtso.hpp"
 
-#include <QFile>
-#include <QFileInfo>
-#include <QJsonArray>
-#include <QJsonDocument>
+#include <QCommandLineParser>
 
-void appConfig_c::read_f(const QJsonObject& json)
+void appConfig_c::derivedConfigureCommandLineParser_f(QCommandLineParser& parser_par) const
 {
-    if (not json["windowGeometry"].isNull())
-    {
-        QByteArray qByteArrayTmp;
-        qByteArrayTmp.append(json["windowGeometry"].toString());
-        windowGeometry_pri = qUncompress(QByteArray::fromBase64(qByteArrayTmp));
-        windowGeometrySet_pri = true;
-    }
-
-    QJsonArray jsonArraySelectedDirectoryHistoryTmp(json["selectedDirectoryHistory"].toArray());
-    if (not jsonArraySelectedDirectoryHistoryTmp.isEmpty())
-    {
-        selectedDirectoryHistory_pri.reserve(jsonArraySelectedDirectoryHistoryTmp.size());
-        for (const auto& jsonArrayItem_ite_con : jsonArraySelectedDirectoryHistoryTmp)
-        {
-            selectedDirectoryHistory_pri.append(jsonArrayItem_ite_con.toString());
-        }
-        selectedDirectoryHistorySet_pri = true;
-    }
+    parser_par.addPositionalArgument("saved results file", "Optional, path to a result files, it will be loaded at the start");
 }
 
-void appConfig_c::write_f(QJsonObject& json) const
+void appConfig_c::derivedCheckCommandLineParser_f(QCommandLineParser& parser_par)
 {
-    if (not selectedDirectoryHistory_pri.isEmpty())
-    {
-        QJsonArray jsonArraySelectedDirectoryHistoryTmp;
-        for (const QString& directoryItem_ite_con : selectedDirectoryHistory_pri)
-        {
-            jsonArraySelectedDirectoryHistoryTmp.append(QJsonValue(directoryItem_ite_con));
-        }
-        json["selectedDirectoryHistory"] = jsonArraySelectedDirectoryHistoryTmp;
-    }
-    QString qStringTmp;
-    qStringTmp.append(qCompress(windowGeometry_pri).toBase64());
-    json["windowGeometry"] = qStringTmp;
+    positionalArguments_pri = parser_par.positionalArguments();
 }
 
-bool appConfig_c::anythingSet_f() const
+QStringList appConfig_c::commandLinePositionalArguments_f() const
 {
-    return selectedDirectoryHistorySet_pri or windowGeometrySet_pri;
-}
-
-appConfig_c::appConfig_c()
-{
-    //no errors here, load if possible else skip
-    //load the file
-    while (configFilePath_f().second)
-    {
-        QFile configFileLoad(configFilePath_f().first);
-        QByteArray jsonByteArray;
-        if (configFileLoad.open(QIODevice::ReadOnly))
-        {
-            jsonByteArray = configFileLoad.readAll();
-        }
-        else
-        {
-            break;
-        }
-
-        QJsonDocument jsonDocObj(QJsonDocument::fromJson(jsonByteArray));
-        if (jsonDocObj.isNull())
-        {
-            break;
-        }
-        else
-        {
-            read_f(jsonDocObj.object());
-            configLoaded_pri = true;
-        }
-        break;
-    }
+    return positionalArguments_pri;
 }
 
 
-bool appConfig_c::saveConfigFile_f() const
+void appConfig_c::derivedStart_f()
 {
-    bool configSavedTmp(false);
-    if (anythingSet_f())
-    {
-        QString configFileStr;
-        //save file
-        if (configFilePath_f().second)
-        {
-            configFileStr = configFilePath_f().first;
-        }
-        else
-        {
-            configFileStr = fileTypePath_f(fileTypes_ec::config);
-        }
+    signalso::signalProxy_ptr_ext = new signalso::signalProxy_c(qApp);
 
-        QFile configFileSaveTmp(configFileStr);
-        if (configFileSaveTmp.open(QIODevice::WriteOnly))
-        {
-            QJsonObject jsonObjectTmp;
-            write_f(jsonObjectTmp);
-            QJsonDocument jsonDocumentTmp(jsonObjectTmp);
+    QObject::connect(this, &appConfig_c::started_signal, mainWindow_ptr_ext, &mainWindow_c::start_f);
+    QObject::connect(mainWindow_ptr_ext, &mainWindow_c::closeWindow_signal, this, &appConfig_c::quit_signal);
 
-            configFileSaveTmp.write(jsonDocumentTmp.toJson(QJsonDocument::Indented));
-            configSavedTmp = true;
-        }
-    }
-    return configSavedTmp;
+    loadConfigFile_f();
+    tryLoadTranslations_f();
+    loadLogging_f();
+
+    //this class doesn't even read anything extra from the json configuration file, so don't quit when there is no json config
+//    if (configLoaded_f())
+//    {
+
+//    }
+//    else
+//    {
+//        //MACRO_ADDLOG("Config not loaded quitting", QString(), messageType_ec::error);
+//        //messageUser_f({"Couldn't load {0} config file, pass \"-g\" argument to generate a config file documentation file", configFilePath_f()}, messageType_ec::informationrmation);
+//        Q_EMIT quit_signal();
+//    }
 }
 
-bool appConfig_c::configLoaded_f() const
+void appConfig_c::derivedQuit_f()
 {
-    return configLoaded_pri;
+    MACRO_ADDLOG("Config file/s saved", QString(), messageType_ec::debug);
+    saveConfigFile_f();
+    saveTranslationFile_f();
 }
 
-QByteArray appConfig_c::windowGeometry_f() const
-{
-    return windowGeometry_pri;
-}
+appConfig_c::appConfig_c(QObject* parent_par)
+    : programConfigGUI_c(parent_par)
+{}
 
-void appConfig_c::setWindowGeometry_f(const QByteArray& windowGeometry_par_con)
-{
-    windowGeometry_pri = windowGeometry_par_con;
-    windowGeometrySet_pri = true;
-}
-
-bool appConfig_c::windowGeometrySet_f() const
-{
-    return windowGeometrySet_pri;
-}
-
-QStringList appConfig_c::selectedDirectoryHistory_f() const
-{
-    return selectedDirectoryHistory_pri;
-}
-
-void appConfig_c::setSelectedDirectoryHistory_f(const QStringList& selectedDirectoryHistory_par_con)
-{
-    selectedDirectoryHistory_pri = selectedDirectoryHistory_par_con;
-    selectedDirectoryHistorySet_pri = true;
-}
-
-bool appConfig_c::selectedDirectoryHistorySet_f() const
-{
-    return selectedDirectoryHistorySet_pri;
-}
-
-appConfig_c&appConfig_f()
-{
-    static appConfig_c appConfig_sta;
-    return appConfig_sta;
-}
+appConfig_c* appConfig_ptr_ext = nullptr;

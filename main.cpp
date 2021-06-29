@@ -1,9 +1,26 @@
-#include "window.hpp"
+#include "mainWindow.hpp"
+#include "appConfig.hpp"
 
 #include "signalso/signal.hpp"
 #include "essentialQtso/essentialQt.hpp"
 
 #include <QApplication>
+
+#ifdef DEBUGJOUVEN
+#include <QDebug>
+#ifndef Q_OS_WIN
+//this is to get pretty stacktrace when the execution crashes
+//instructions:
+//1 this only applies to program projects, libs don't need this (libs need debug, -gX flags when compiling)
+//2 link to -ldw or the elftutils library
+//3 set the DEFINES in the .pro BACKWARD_HAS_UNWIND BACKWARD_HAS_DW (check backward.hpp source for more info about the macros)
+//more info https://github.com/bombela/backward-cpp
+#include "backward-cpp/backward.hpp"
+namespace {
+backward::SignalHandling sh;
+}
+#endif
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -17,34 +34,14 @@ int main(int argc, char *argv[])
 #endif
 
     QApplication qtapp(argc, argv);
-    QApplication::setApplicationName("hasherQtg");
-    QApplication::setApplicationVersion("1.0");
 
-    QStringList positionalArgs;
-    {
-        QCommandLineParser commandLineParser;
-        commandLineParser.setApplicationDescription("hasherQtg, GUI program to generate hashes, save the results to a file and compare the hashes from file to the current values");
-        commandLineParser.addHelpOption();
-        commandLineParser.addVersionOption();
-        commandLineParser.addPositionalArgument("saved results file", "Optional, path to a result files, it will be loaded at the start");
+    mainWindow_c mainWindowTmp;
+    mainWindow_ptr_ext = std::addressof(mainWindowTmp);
 
-        commandLineParser.process(*qApp);
-        positionalArgs = commandLineParser.positionalArguments();
+    appConfig_c appConfigTmp(nullptr);
+    appConfig_ptr_ext = std::addressof(appConfigTmp);
 
-        locateConfigFilePath_f(commandLineParser, false);
-    }
-
-    mainWindow_c window;
-    window.show();
-    window.processPositionalArguments_f(positionalArgs);
     returnValue_ext = qtapp.exec();
-
-    if (signalso::isRunning_f())
-    {
-        signalso::stopRunning_f();
-    }
-    while (not signalso::isTheEnd_f())
-    {}
 
     return returnValue_ext;
 }

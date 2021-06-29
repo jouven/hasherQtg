@@ -1,43 +1,59 @@
 #ifndef HASHERQTG_APPCONFIG_HPP
 #define HASHERQTG_APPCONFIG_HPP
 
-#include <QString>
-#include <QStringList>
-#include <QByteArray>
-#include <QJsonObject>
+#include "programConfigQtgso/programConfigGUI.hpp"
 
-class appConfig_c
+class appConfig_c : public programConfigGUI_c
 {
-    bool configLoaded_pri = false;
+    Q_OBJECT
 
-    QByteArray windowGeometry_pri;
-    bool windowGeometrySet_pri = false;
+    QStringList positionalArguments_pri;
 
-    QStringList selectedDirectoryHistory_pri;
-    bool selectedDirectoryHistorySet_pri = false;
+    void derivedReadJSON_f(const QJsonObject &json_par_con) override
+    {}
+    void derivedWriteJSONDocumented_f(QJsonObject &json_par) const override
+    {}
+    void derivedWriteJSON_f(QJsonObject &) const override
+    {}
+    bool firstPositionalArgumentCanBeConfig_f() const override
+    {
+        return false;
+    }
+    bool translationCreatePlacerholders_f() const override
+    {
+        return true;
+    }
+    bool loggingSaveLogFileRequired_f() const override
+    {
+        return true;
+    }
+    QString programName_f() const override
+    {
+        return "hasherQtg";
+    }
+    text_c programDescription_f() const override
+    {
+        return "hasherQtg, GUI program to generate hashes, save the results to a file and compare the hashes from file to the current values\nCreated by Jouven";
+    }
+    QString programVersion_f() const override
+    {
+        return "1.0";
+    }
 
-    void loadConfig_f();
-
-    void read_f(const QJsonObject &json);
-    void write_f(QJsonObject &json) const;
-    bool anythingSet_f() const;
+    bool requiresJSONDocumented_f() const override
+    {
+        return true;
+    }
+    void derivedConfigureCommandLineParser_f(QCommandLineParser& parser_par) const override;
+    void derivedCheckCommandLineParser_f(QCommandLineParser& parser_par) override;
+    void derivedStart_f() override;
+    void derivedQuit_f() override;
 public:
-    appConfig_c();
+    appConfig_c(QObject* parent_par);
 
-    bool saveConfigFile_f() const;
-
-    bool configLoaded_f() const;
-
-    QByteArray windowGeometry_f() const;
-    void setWindowGeometry_f(const QByteArray& windowGeometry_par_con);
-    bool windowGeometrySet_f() const;
-
-    QStringList selectedDirectoryHistory_f() const;
-    void setSelectedDirectoryHistory_f(const QStringList& selectedDirectoryHistory_par_con);
-    bool selectedDirectoryHistorySet_f() const;
-
+    QStringList commandLinePositionalArguments_f() const;
 };
 
-extern appConfig_c& appConfig_f();
+extern appConfig_c* appConfig_ptr_ext;
 
 #endif // HASHERQTG_APPCONFIG_HPP
